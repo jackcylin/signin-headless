@@ -118,8 +118,8 @@ await auth.query("{ customer { firstName } }"); // BFF: broker proxies to Custom
 await auth.logout();
 ```
 
-Exports: `createHeadlessAuth`, `memoryTokenStore`, `registerHikoSignin`, and the
-side-effect `@hiko/signin-headless/element` entry (registers `<hiko-signin>`).
+Exports: `createHeadlessAuth`, `registerHikoSignin`, and the side-effect
+`@hiko/signin-headless/element` entry (registers `<hiko-signin>`).
 
 ---
 
