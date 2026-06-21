@@ -10,3 +10,11 @@ it("maps widget transport calls to the SDK", async () => {
   await t.selectEmail("a@b.c");
   expect(auth.login).toHaveBeenCalledWith();
 });
+
+it("selectSocial resolves to {} and calls auth.login with the provider", async () => {
+  const auth = { login: vi.fn(async () => {}), loadConfig: vi.fn() };
+  const t = createHeadlessTransport(auth);
+  const result = await t.selectSocial("google");
+  expect(auth.login).toHaveBeenCalledWith("google");
+  expect(result).toEqual({});
+});
