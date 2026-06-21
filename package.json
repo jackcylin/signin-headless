@@ -1,0 +1,43 @@
+{
+  "name": "@hiko/signin-headless",
+  "version": "0.1.0",
+  "description": "Headless Shopify Customer Account (OIDC) social login — public client + PKCE, browser-only.",
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": [
+    "./src/element.js",
+    "./src/index.js"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./element": {
+      "import": "./dist/element.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@hiko/signin-widget": "file:../signin-widget",
+    "lit": "^3.1.0"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.0",
+    "tsup": "^8.0.0",
+    "vitest": "^2.0.0"
+  }
+}
