@@ -9,7 +9,7 @@
   el.setAttribute("shop", import.meta.env.VITE_SHOP);
   el.setAttribute("client-id", import.meta.env.VITE_CLIENT_ID);
   el.setAttribute("shop-id", import.meta.env.VITE_SHOP_ID);
-  el.setAttribute("config-server", import.meta.env.VITE_CONFIG_SERVER || "https://hiko.link");
+  el.setAttribute("config-server", import.meta.env.VITE_CONFIG_SERVER || "https://signin.hiko.software");
   document.getElementById("mount").appendChild(el);
   document.getElementById("whoami").onclick = async () => {
     const data = await el._auth.query("{ customer { firstName emailAddress { emailAddress } } }");

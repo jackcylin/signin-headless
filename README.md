@@ -81,7 +81,7 @@ npm install @hiko/signin-headless
   shop="your-shop.myshopify.com"
   client-id="<public client id>"
   shop-id="<numeric shop id>"
-  config-server="https://hiko.link">
+  config-server="https://signin.hiko.software">
 </hiko-signin>
 
 <script type="module">
@@ -105,7 +105,7 @@ const auth = createHeadlessAuth({
   shop: "your-shop.myshopify.com",
   clientId: "<public client id>",
   shopId: "<numeric shop id>",
-  configServer: "https://hiko.link", // optional, this is the default
+  configServer: "https://signin.hiko.software", // optional, this is the default
 });
 
 await auth.loadConfig();         // providers + appearance from the HIKO server
@@ -130,7 +130,7 @@ the `VITE_*` env vars used by the local dev server (see [Run locally](#run-local
 | `shop` / `VITE_SHOP` | Store domain `*.myshopify.com` | Shopify admin → Settings → Domains, or your admin URL (`admin.shopify.com/store/<handle>`) |
 | `client-id` / `VITE_CLIENT_ID` | Customer Account API **public** client id | Admin → Settings → Customer accounts → Customer Account API → *Application setup* (the same screen as the setup above) |
 | `shop-id` / `VITE_SHOP_ID` | **Numeric** shop id | Same screen — the auth URL reads `https://shopify.com/authentication/<SHOP_ID>`; copy the number. (Also the trailing digits of `gid://shopify/Shop/<id>`.) |
-| `config-server` / `VITE_CONFIG_SERVER` | HIKO server serving per-shop config | `https://hiko.link` (default; only change if you self-host HIKO) |
+| `config-server` / `VITE_CONFIG_SERVER` | HIKO server serving per-shop config | `https://signin.hiko.software` (default; only change if you self-host HIKO) |
 
 ---
 

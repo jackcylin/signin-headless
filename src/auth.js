@@ -10,7 +10,7 @@ const PKCE_KEY = "hiko:pkce";
 
 export function createHeadlessAuth(opts) {
   const {
-    shop, configServer = "https://hiko.link", clientId, shopId,
+    shop, configServer = "https://signin.hiko.software", clientId, shopId,
     redirectUri = (typeof location !== "undefined" ? location.origin + location.pathname : ""),
     scope = "openid email customer-account-api:full",
     tokenStore = memoryTokenStore(), fetchImpl = fetch,
