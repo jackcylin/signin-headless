@@ -1,8 +1,11 @@
-import { css, LitElement, html } from 'lit';
-import { unsafeSVG } from 'lit/directives/unsafe-svg.js';
-import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+// src/widget/hiko-signin.js
+import { LitElement, html } from "lit";
+import { unsafeSVG } from "lit/directives/unsafe-svg.js";
+import { unsafeHTML } from "lit/directives/unsafe-html.js";
 
-const styles = css`
+// src/widget/styles.js
+import { css } from "lit";
+var styles = css`
   :host { display: block; font-family: system-ui, -apple-system, sans-serif; color: #111; }
   .hs { max-width: 360px; margin: 0 auto; }
   .hs-error { color: #b91c1c; font-size: 0.875rem; margin: 0 0 0.75rem; }
@@ -61,10 +64,8 @@ const styles = css`
   .hs-consent-error { color: #b91c1c; font-size: 0.8rem; margin-top: 0.35rem; }
 `;
 
-// Brand marks for the social sign-in buttons. Each is rendered in full color
-// (the brand color, or true multicolor for Google/Microsoft) and shown on a
-// white chip so it stays colorful on any theme.
-const D = {
+// src/widget/icons.js
+var D = {
   google: { color: "#4285F4", label: "Continue with Google", path: "M12.48 10.92v3.28h7.84c-.24 1.84-.853 3.187-1.787 4.133-1.147 1.147-2.933 2.4-6.053 2.4-4.827 0-8.6-3.893-8.6-8.72s3.773-8.72 8.6-8.72c2.6 0 4.507 1.027 5.907 2.347l2.307-2.307C18.747 1.44 16.133 0 12.48 0 5.867 0 .307 5.387.307 12s5.56 12 12.173 12c3.573 0 6.267-1.173 8.373-3.36 2.16-2.16 2.84-5.213 2.84-7.667 0-.76-.053-1.467-.173-2.053H12.48z", vb: "0 0 48 48", multi: `<path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>` },
   line: { color: "#06C755", label: "Continue with LINE", path: "M24 10.304c0-5.369-5.383-9.738-12-9.738-6.616 0-12 4.369-12 9.738 0 4.814 4.269 8.846 10.036 9.608.391.084.922.258 1.057.592.121.303.079.778.039 1.085l-.171 1.027c-.053.303-.242 1.186 1.039.647 1.281-.54 6.911-4.069 9.428-6.967 1.739-1.907 2.573-3.843 2.573-5.992zM7.755 13.595H5.367a.631.631 0 0 1-.63-.63V8.183a.631.631 0 0 1 1.26 0v4.151h1.758a.63.63 0 1 1 0 1.261zm2.467-.63a.631.631 0 0 1-1.26 0V8.183a.631.631 0 0 1 1.26 0v4.782zm5.76 0a.63.63 0 0 1-1.135.378l-2.446-3.33v2.952a.63.63 0 1 1-1.26 0V8.183a.631.631 0 0 1 1.135-.378l2.446 3.33V8.183a.631.631 0 0 1 1.26 0v4.782zm3.872-3.021a.63.63 0 0 1 0 1.26h-1.758v1.131h1.758a.631.631 0 0 1 0 1.26h-2.388a.631.631 0 0 1-.63-.63V8.183a.631.631 0 0 1 .63-.63h2.388a.631.631 0 0 1 0 1.26h-1.758v1.131h1.758z" },
   github: { color: "#181717", label: "Continue with GitHub", path: "M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" },
@@ -85,42 +86,29 @@ const D = {
   tiktok: { color: "#010101", label: "Continue with TikTok", path: "M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" },
   snapchat: { color: "#FFFC00", label: "Continue with Snapchat", path: "M12.206.793c.99 0 4.347.276 5.93 3.821.529 1.193.403 3.219.299 4.847l-.003.06c-.012.18-.022.345-.03.51.075.045.203.09.401.09.3-.016.659-.12 1.033-.301.165-.088.344-.104.464-.104.182 0 .359.029.509.09.45.149.734.479.734.838.015.449-.39.839-1.213 1.168-.089.029-.209.075-.344.119-.45.135-1.139.36-1.333.81-.09.224-.061.524.12.868l.015.015c.06.136 1.526 3.475 4.77 4.01.255.044.435.27.42.524 0 .074-.015.149-.044.225-.24.569-1.273.988-3.146 1.271-.059.091-.12.375-.164.57-.029.179-.074.36-.135.553-.073.27-.27.405-.57.405h-.03c-.135 0-.33-.031-.57-.075-.36-.075-.81-.135-1.38-.135-.345 0-.69.03-1.034.074-.66.105-1.23.51-1.889.976-.945.674-2.024 1.439-3.65 1.439-.074 0-.149-.015-.209-.015h-.196c-1.62 0-2.685-.765-3.646-1.44-.654-.466-1.234-.87-1.89-.975a6.798 6.798 0 0 0-1.043-.075c-.6 0-1.073.09-1.38.135-.255.044-.45.074-.6.074-.45 0-.51-.27-.57-.405-.06-.18-.105-.375-.135-.555-.044-.21-.105-.479-.165-.57-1.889-.225-2.924-.644-3.164-1.213a.97.97 0 0 1-.045-.225.49.49 0 0 1 .42-.524c3.24-.526 4.71-3.864 4.77-4.005l.016-.029c.18-.345.224-.645.119-.869-.195-.434-.884-.658-1.332-.809-.135-.045-.255-.074-.345-.119-1.107-.435-1.257-.93-1.197-1.273.09-.479.674-.793 1.168-.793.146 0 .27.029.383.074.42.194.789.299 1.099.299.234 0 .384-.06.465-.105l-.045-.569c-.105-1.626-.226-3.65.299-4.84C7.84 1.082 11.2.807 12.18.807l.029-.014z", multi: `<circle cx="12" cy="12" r="12" fill="#FFFC00"/><g transform="translate(4.32 4.32) scale(0.64)"><path fill="#fff" stroke="#161616" stroke-width="1.4" stroke-linejoin="round" d="M12.206.793c.99 0 4.347.276 5.93 3.821.529 1.193.403 3.219.299 4.847l-.003.06c-.012.18-.022.345-.03.51.075.045.203.09.401.09.3-.016.659-.12 1.033-.301.165-.088.344-.104.464-.104.182 0 .359.029.509.09.45.149.734.479.734.838.015.449-.39.839-1.213 1.168-.089.029-.209.075-.344.119-.45.135-1.139.36-1.333.81-.09.224-.061.524.12.868l.015.015c.06.136 1.526 3.475 4.77 4.01.255.044.435.27.42.524 0 .074-.015.149-.044.225-.24.569-1.273.988-3.146 1.271-.059.091-.12.375-.164.57-.029.179-.074.36-.135.553-.073.27-.27.405-.57.405h-.03c-.135 0-.33-.031-.57-.075-.36-.075-.81-.135-1.38-.135-.345 0-.69.03-1.034.074-.66.105-1.23.51-1.889.976-.945.674-2.024 1.439-3.65 1.439-.074 0-.149-.015-.209-.015h-.196c-1.62 0-2.685-.765-3.646-1.44-.654-.466-1.234-.87-1.89-.975a6.798 6.798 0 0 0-1.043-.075c-.6 0-1.073.09-1.38.135-.255.044-.45.074-.6.074-.45 0-.51-.27-.57-.405-.06-.18-.105-.375-.135-.555-.044-.21-.105-.479-.165-.57-1.889-.225-2.924-.644-3.164-1.213a.97.97 0 0 1-.045-.225.49.49 0 0 1 .42-.524c3.24-.526 4.71-3.864 4.77-4.005l.016-.029c.18-.345.224-.645.119-.869-.195-.434-.884-.658-1.332-.809-.135-.045-.255-.074-.345-.119-1.107-.435-1.257-.93-1.197-1.273.09-.479.674-.793 1.168-.793.146 0 .27.029.383.074.42.194.789.299 1.099.299.234 0 .384-.06.465-.105l-.045-.569c-.105-1.626-.226-3.65.299-4.84C7.84 1.082 11.2.807 12.18.807l.029-.014z"/></g>` },
   reddit: { color: "#FF4500", label: "Continue with Reddit", path: "M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-6.993 4.87-3.86 0-6.99-2.176-6.99-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12c-.69 0-1.25.56-1.25 1.25 0 .687.56 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.91 2.961.91.477 0 2.105-.057 2.961-.91a.361.361 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.547.533-1.684.73-2.512.73-.828 0-1.979-.196-2.512-.73a.326.326 0 0 0-.232-.095z" },
-  tumblr: { color: "#36465D", label: "Continue with Tumblr", path: "M14.563 24c-5.093 0-7.031-3.756-7.031-6.411V9.747H5.116V6.648c3.63-1.313 4.512-4.596 4.71-6.469C9.84.051 9.941 0 9.999 0h3.517v6.114h4.801v3.633h-4.82v7.475c.016 1.305.488 3.089 2.84 3.089h.144c.376-.012.882-.123 1.141-.249l1.13 3.347c-.221.351-1.182 1.428-3.66 1.491h-.529z" },
+  tumblr: { color: "#36465D", label: "Continue with Tumblr", path: "M14.563 24c-5.093 0-7.031-3.756-7.031-6.411V9.747H5.116V6.648c3.63-1.313 4.512-4.596 4.71-6.469C9.84.051 9.941 0 9.999 0h3.517v6.114h4.801v3.633h-4.82v7.475c.016 1.305.488 3.089 2.84 3.089h.144c.376-.012.882-.123 1.141-.249l1.13 3.347c-.221.351-1.182 1.428-3.66 1.491h-.529z" }
 };
-
-const svg = (inner, vb = "0 0 24 24") => `<svg viewBox="${vb}" aria-hidden="true">${inner}</svg>`;
-
-// Full-color mark (multicolor where defined, else brand-colored) — used with a
-// white chip behind the label formats.
+var svg = (inner, vb = "0 0 24 24") => `<svg viewBox="${vb}" aria-hidden="true">${inner}</svg>`;
 function iconColor(d) {
   if (d.multi) return svg(d.multi, d.vb);
   if (d.path) return svg(`<path fill="${d.color}" d="${d.path}"/>`);
   return "";
 }
-
-// Monochrome mark that inherits the button text color (currentColor) — used for
-// the icon-only format so the themed/shaped button shows through.
 function iconMono(d) {
   return d.path ? svg(`<path fill="currentColor" d="${d.path}"/>`) : "";
 }
-
-// The renderable icon variants (what the widget / providerIconVariant produce).
-const ICON_VARIANTS = ["color", "white", "dark", "outline"];
-
-// One provider mark rendered in a chosen visual variant:
-//   color   → full-color mark (e.g. Google's 4-color "G") — the default
-//   white   → solid white mark (for dark / colored buttons)
-//   dark    → solid #1f1f1f mark (for light buttons)
-//   outline → currentColor mark inside a thin currentColor circle
-// Falls back to the full-color mark for an unknown variant or a provider without
-// a single-color `path` to recolor.
+var ICON_VARIANTS = ["color", "white", "dark", "outline"];
+var ICON_VARIANT_CHOICES = ["default", ...ICON_VARIANTS];
+var ICON_PICKER_PROVIDERS = Object.keys(D);
 function providerIconVariant(name, variant) {
   const d = D[name];
   if (!d) return "";
-  if (!d.path) return iconColor(d); // no recolorable glyph → only full-color
+  if (!d.path) return iconColor(d);
   switch (variant) {
-    case "white": return svg(`<path fill="#ffffff" d="${d.path}"/>`);
-    case "dark": return svg(`<path fill="#1f1f1f" d="${d.path}"/>`);
+    case "white":
+      return svg(`<path fill="#ffffff" d="${d.path}"/>`);
+    case "dark":
+      return svg(`<path fill="#1f1f1f" d="${d.path}"/>`);
     case "outline":
       return svg(`<circle cx="12" cy="12" r="11" fill="none" stroke="currentColor" stroke-width="1.6"/><g transform="translate(4.8 4.8) scale(0.6)"><path fill="currentColor" d="${d.path}"/></g>`);
     case "color":
@@ -128,120 +116,54 @@ function providerIconVariant(name, variant) {
       return iconColor(d);
   }
 }
-
-// ── Contrast helpers: keep an icon from blending into its button background ──
 function hexToRgb(hex) {
   let h = String(hex || "").trim().replace(/^#/, "");
   if (h.length === 3) h = h.split("").map((c) => c + c).join("");
   const n = parseInt(h, 16);
   if (h.length !== 6 || Number.isNaN(n)) return null;
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  return [n >> 16 & 255, n >> 8 & 255, n & 255];
 }
 function isLightColor(hex) {
   const rgb = hexToRgb(hex);
-  if (!rgb) return true; // unknown → treat as light (safe: prefers dark/color marks)
-  return (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) > 140;
+  if (!rgb) return true;
+  return 0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2] > 140;
 }
-const sanitizeHexColor = (v) => (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(String(v ?? "").trim()) ? String(v).trim() : "");
-const isPlainWhite = (hex) => { const h = String(hex).toLowerCase(); return h === "#fff" || h === "#ffffff"; };
+var sanitizeHexColor = (v) => /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(String(v ?? "").trim()) ? String(v).trim() : "";
+var isPlainWhite = (hex) => {
+  const h = String(hex).toLowerCase();
+  return h === "#fff" || h === "#ffffff";
+};
 function colorDistance(a, b) {
   const x = hexToRgb(a), y = hexToRgb(b);
   if (!x || !y) return 255;
   return Math.sqrt((x[0] - y[0]) ** 2 + (x[1] - y[1]) ** 2 + (x[2] - y[2]) ** 2);
 }
-const BLEND_THRESHOLD = 100; // RGB distance below which a mark blends into the button
-
-// Pick the SVG mark to render for a provider button, guaranteeing the icon
-// contrasts with the button background across every theme/format:
-//  - `variant` "default"/null → a theme-appropriate auto mark.
-//  - an explicit variant → honored UNLESS it would blend into the button
-//    background (e.g. a "color" green glyph on a green Color-theme button, or a
-//    near-black glyph on the Dark button), in which case we fall back to the auto
-//    mark. The button background is white for label formats (icons sit on a white
-//    chip), the theme color for icon-only Light/Dark, and the brand color for the
-//    Color theme's icon-only buttons.
+var BLEND_THRESHOLD = 100;
 function pickIconMark(name, variant, theme, format, bgOverride) {
   const d = D[name];
   if (!d) return "";
   const iconOnly = format === "icon";
-  // A merchant-set custom background colour overrides the button colour (icon-only
-  // sits directly on it; label formats keep their white icon chip).
   const customBg = iconOnly && sanitizeHexColor(bgOverride);
-  const btnBg = customBg || (!iconOnly ? "#ffffff"
-    : theme === "light" ? "#ffffff"
-      : theme === "dark" ? "#1a1a1a"
-        : (d.color || "#444444")); // Color theme: the brand-colored button
+  const btnBg = customBg || (!iconOnly ? "#ffffff" : theme === "light" ? "#ffffff" : theme === "dark" ? "#1a1a1a" : d.color || "#444444");
   const bgLight = isLightColor(btnBg);
-  // Guaranteed-contrasting mark (also the blend fallback), chosen by the actual
-  // button background so it's robust to custom backgrounds too:
-  //  - label formats: full colour (icon sits on a white chip).
-  //  - plain white button: full-colour brand mark (pops on white).
-  //  - other light button (brand/custom): a dark monochrome mark.
-  //  - dark button: a white monochrome mark.
-  const autoMark = !iconOnly
-    ? iconColor(d)
-    : bgLight
-      ? (isPlainWhite(btnBg) ? iconColor(d) : providerIconVariant(name, "dark"))
-      : providerIconVariant(name, "white");
+  const autoMark = !iconOnly ? iconColor(d) : bgLight ? isPlainWhite(btnBg) ? iconColor(d) : providerIconVariant(name, "dark") : providerIconVariant(name, "white");
   if (!variant || variant === "default" || !ICON_VARIANTS.includes(variant)) return autoMark;
-  // The forced variant's dominant colour. For "color" this is the brand colour —
-  // which is also a badge mark's own background (e.g. the red Yandex square) — so
-  // on a matching brand-colour button (the Color theme) it blends and we fall back
-  // to the mono auto mark that fills the icon. "outline" uses currentColor → visible.
-  const fg = variant === "white" ? "#ffffff"
-    : variant === "dark" ? "#1f1f1f"
-      : variant === "color" ? d.color
-        : null;
+  const fg = variant === "white" ? "#ffffff" : variant === "dark" ? "#1f1f1f" : variant === "color" ? d.color : null;
   const blends = fg && colorDistance(fg, btnBg) < BLEND_THRESHOLD;
   return blends ? autoMark : providerIconVariant(name, variant);
 }
-
 function providerDisplay(name) {
   const d = D[name];
-  // `brand` is the provider's display name (Google, LINE, NAVER, X, …); the
-  // widget composes the button label from a translatable "Continue with
-  // {provider}" template so the prefix localizes while the brand stays as-is.
   if (!d) return { label: `Continue with ${name}`, brand: name, color: "#444444", icon: "", iconMono: "" };
   const brand = d.label.replace(/^Continue with /, "");
   return { label: d.label, brand, color: d.color, icon: iconColor(d), iconMono: iconMono(d) };
 }
 
-// Conservative allowlist sanitizer for the two merchant-authored HTML widget
-// labels (marketing opt-in + terms consent). Shared by the storefront widget
-// render and the admin live preview, so it's pure string-only (no DOM / Node
-// APIs) and works isomorphically.
-//
-// Threat model: the label is set ONLY by the authenticated merchant and rendered
-// on the merchant's OWN storefront — a merchant could already inject anything via
-// their theme. So this is defense-in-depth (avoid accidents / obvious XSS), not a
-// hard trust boundary: it drops <script>/<style>, any tag outside the allowlist,
-// all event handlers, and unsafe URL schemes, keeping only basic formatting +
-// safe links.
-
-const ALLOWED_TAGS = new Set(["a", "b", "strong", "i", "em", "u", "br", "span", "p"]);
-
-// Shopify's `t` (translate) Liquid filter HTML-escapes its output, so an
-// HTML-valued widget label inlined via {{ 'key' | t }} reaches the widget as
-// `&lt;a href=&quot;…&quot;&gt;…`. Decode the basic entities Liquid emits
-// (&, <, >, ", ') so the merchant's intended HTML is restored; the sanitizer
-// then re-validates it. On already-real HTML (merchant overrides published as
-// raw via `| json`, the shipped asset, or the English default) it's a no-op
-// apart from resolving a stray literal entity — fine for label text. `&amp;` is
-// decoded LAST so `&amp;lt;` → `&lt;` rather than `<`.
+// src/widget/sanitize.js
+var ALLOWED_TAGS = /* @__PURE__ */ new Set(["a", "b", "strong", "i", "em", "u", "br", "span", "p"]);
 function decodeBasicEntities(input) {
-  return String(input ?? "")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#0*39;/g, "'")
-    .replace(/&#x0*27;/gi, "'")
-    .replace(/&apos;/g, "'")
-    .replace(/&amp;/g, "&");
+  return String(input ?? "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#0*39;/g, "'").replace(/&#x0*27;/gi, "'").replace(/&apos;/g, "'").replace(/&amp;/g, "&");
 }
-
-// Allow http(s)/mailto and scheme-less (relative, anchor) URLs; reject
-// javascript:, data:, etc. A scheme is the part before the first ":" that comes
-// before any "/", "?" or "#".
 function safeHref(raw) {
   const href = String(raw || "").trim();
   if (!href) return null;
@@ -250,26 +172,19 @@ function safeHref(raw) {
     const scheme = schemeMatch[1].toLowerCase();
     if (scheme !== "http" && scheme !== "https" && scheme !== "mailto") return null;
   }
-  // Reject control characters that could smuggle a scheme (e.g. "java\tscript:").
-  // Checked by char code rather than a control-char regex (avoids no-control-regex).
   for (let i = 0; i < href.length; i++) {
-    if (href.charCodeAt(i) < 0x20) return null;
+    if (href.charCodeAt(i) < 32) return null;
   }
   return href;
 }
-
 function attr(tagBody, name) {
   const m = tagBody.match(new RegExp(`${name}\\s*=\\s*("([^"]*)"|'([^']*)'|([^\\s"'>]+))`, "i"));
-  return m ? (m[2] ?? m[3] ?? m[4] ?? "") : null;
+  return m ? m[2] ?? m[3] ?? m[4] ?? "" : null;
 }
-
 function sanitizeLabelHtml(input) {
-  let html = String(input ?? "");
-  // Strip script/style blocks (with content) outright.
-  html = html.replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, "");
-  // Rewrite every tag: keep allowlisted ones (attributes stripped, except safe
-  // href/target/rel on <a>); drop everything else, preserving inner text.
-  return html.replace(/<(\/?)([a-zA-Z][a-zA-Z0-9]*)\b([^>]*)>/g, (_m, slash, rawName, body) => {
+  let html2 = String(input ?? "");
+  html2 = html2.replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, "");
+  return html2.replace(/<(\/?)([a-zA-Z][a-zA-Z0-9]*)\b([^>]*)>/g, (_m, slash, rawName, body) => {
     const name = rawName.toLowerCase();
     if (!ALLOWED_TAGS.has(name)) return "";
     if (slash) return `</${name}>`;
@@ -286,60 +201,42 @@ function sanitizeLabelHtml(input) {
   });
 }
 
-const LEVELS = { debug: 2, info: 3, warn: 4, error: 5 };
-
-// Build a console-backed logger; methods below `level` become no-ops.
-// Exported as a factory (for tests) and a default singleton whose level is
-// baked in at build time from import.meta.env.VITE_LOG_LEVEL (default "error").
+// src/widget/logger.js
+var LEVELS = { debug: 2, info: 3, warn: 4, error: 5 };
 function createLogger(level) {
   const lvl = LEVELS[(level || "").toLowerCase()] ? level.toLowerCase() : "error";
   const log = {};
   for (const method of Object.keys(LEVELS)) {
-    log[method] =
-      LEVELS[method] < LEVELS[lvl]
-        ? () => {}
-        : console[method].bind(console, `[hiko] ${method.toUpperCase()}:`);
+    log[method] = LEVELS[method] < LEVELS[lvl] ? () => {
+    } : console[method].bind(console, `[hiko] ${method.toUpperCase()}:`);
   }
   return log;
 }
+var _a;
+var logger = createLogger((_a = import.meta.env) == null ? void 0 : _a.VITE_LOG_LEVEL);
 
-const logger = createLogger(import.meta.env?.VITE_LOG_LEVEL);
-
-// Storefront widget i18n. English is the built-in default (inlined in the main
-// bundle, no network cost). Other locales ship as theme-extension locale files
-// (extensions/theme-extension/locales/<lang>.json) that Shopify's `t` filter
-// inlines into the Liquid block as `messages` — so non-English copy never bloats
-// the bundle and there is no runtime fetch. Per-shop overrides (the Translations
-// page, published in the metafield) layer on top and can cover any language.
-const DEFAULT = {
+// src/widget/i18n.js
+var DEFAULT = {
   errorUnavailable: "Sign-in is temporarily unavailable",
   errorMethod: "That sign-in method isn't available.",
   errorStart: "Couldn't start sign-in. Please try again.",
   errorEmail: "Please enter a valid email address.",
   emailPlaceholder: "Email",
-  or: "or", // divider label between social buttons and email sign-in
+  or: "or",
+  // divider label between social buttons and email sign-in
   continue: "Continue",
   signIn: "Sign in",
   close: "Close",
-  continueWith: "Continue with {provider}", // {provider} = brand name (kept as-is)
-  marketingOptIn: "Email me with news and offers", // HTML allowed (sanitized)
+  continueWith: "Continue with {provider}",
+  // {provider} = brand name (kept as-is)
+  marketingOptIn: "Email me with news and offers",
+  // HTML allowed (sanitized)
   // Terms-consent checkbox. HTML allowed (sanitized) so merchants can link their
   // policy pages. Shown only when consent.enabled; sign-in is blocked until ticked.
   consentLabel: 'I agree to the <a href="/policies/terms-of-service" target="_blank" rel="noopener">Terms of Service</a> and <a href="/policies/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a>',
   // Red error shown when the consent box is required but left unchecked (plain text).
-  consentRequired: "Please agree to the terms to continue.",
+  consentRequired: "Please agree to the terms to continue."
 };
-
-// The effective widget strings: English default → the active-locale strings →
-// the merchant's per-locale overrides (from the Translations page, published in
-// the metafield). Returns DEFAULT unchanged when nothing localizes, so callers
-// can skip a re-render. `overridesByLocale` is the `widgetText` map keyed by
-// locale; `locale` is the resolved locale code (e.g. "zh-TW" or "en").
-//
-// The active-locale base is resolved without any network round-trip: Shopify's
-// `t` filter emits the active language's strings (from
-// extensions/theme-extension/locales/) into `injected`. English (or any locale
-// the block didn't inline) resolves to DEFAULT, then overrides layer on top.
 function resolveMessages({ injected, locale, overridesByLocale }) {
   const base = hasStrings(injected) ? { ...DEFAULT, ...injected } : DEFAULT;
   const overrides = pickOverride(overridesByLocale, locale);
@@ -348,16 +245,9 @@ function resolveMessages({ injected, locale, overridesByLocale }) {
   for (const [k, v] of Object.entries(overrides)) if (typeof v === "string" && v.trim()) clean[k] = v;
   return Object.keys(clean).length ? { ...base, ...clean } : base;
 }
-
-// True when `v` is a non-empty object with at least one string value — i.e. the
-// block actually inlined locale strings (an empty `{}` falls through to fetch).
 function hasStrings(v) {
   return !!v && typeof v === "object" && Object.values(v).some((s) => typeof s === "string" && s.length > 0);
 }
-
-// Find the override set for a locale: exact match, else the base language
-// (e.g. "pt-BR" → "pt"). Lets merchant-added languages (beyond the built-in
-// set) resolve from the shopper's storefront locale.
 function pickOverride(map, locale) {
   if (!map || !locale) return null;
   if (map[locale]) return map[locale];
@@ -365,7 +255,8 @@ function pickOverride(map, locale) {
   return map[base] || null;
 }
 
-class HikoSignin extends LitElement {
+// src/widget/hiko-signin.js
+var HikoSignin = class _HikoSignin extends LitElement {
   static properties = {
     endpoint: { type: String },
     loginUrl: { type: String, attribute: "login-url" },
@@ -382,12 +273,11 @@ class HikoSignin extends LitElement {
     _marketingOptIn: { state: true },
     _consentChecked: { state: true },
     _consentError: { state: true },
-    _t: { state: true },
+    _t: { state: true }
   };
-
   static styles = styles;
-  static transportFactory = null; // set by defineHikoSignin(); (el) => Transport
-
+  static transportFactory = null;
+  // set by defineHikoSignin(); (el) => Transport
   constructor() {
     super();
     this.endpoint = "/apps/signin";
@@ -397,66 +287,58 @@ class HikoSignin extends LitElement {
     this.config = null;
     this._error = null;
     this._emailLoading = false;
-    this._socialLoading = null; // provider name while its redirect is starting
+    this._socialLoading = null;
     this._marketingOptIn = false;
     this._consentChecked = false;
     this._consentError = null;
-    this._t = DEFAULT; // English baseline; localized lazily (see _loadI18n)
+    this._t = DEFAULT;
     this._transport = null;
-    this._navigate = (url) => { window.location.assign(url); };
-    // The social/email handlers keep the spinner on while navigating away to
-    // login. When the user hits Back, the page is restored from the bfcache with
-    // that state intact — a stuck spinner. Clear it on a bfcache restore.
+    this._navigate = (url) => {
+      window.location.assign(url);
+    };
     this._onPageShow = (e) => {
       if (!e.persisted) return;
       this._socialLoading = null;
       this._emailLoading = false;
     };
   }
-
   connectedCallback() {
     super.connectedCallback();
     window.addEventListener("pageshow", this._onPageShow);
-    this._transport = HikoSignin.transportFactory
-      ? HikoSignin.transportFactory(this)
-      : null;
+    this._transport = _HikoSignin.transportFactory ? _HikoSignin.transportFactory(this) : null;
     if (!this.config && !this.preview && this.fetchConfig) this._loadConfig();
     this._loadI18n();
   }
-
   disconnectedCallback() {
     super.disconnectedCallback();
     window.removeEventListener("pageshow", this._onPageShow);
   }
-
   // Seed the opt-in checkbox from the merchant's setting whenever config lands:
   // pre-checked only when marketing is enabled AND defaultChecked (default true).
   // When marketing is off there's no checkbox, so the opt-in stays false. User
   // toggles after that persist (config doesn't change again on the storefront).
   willUpdate(changed) {
+    var _a2, _b;
     if (changed.has("config")) {
-      const m = this.config?.marketing;
-      this._marketingOptIn = m?.enabled === true && m?.defaultChecked !== false;
-      // Terms-consent box: pre-ticked per defaultChecked when enabled. Shoppers
-      // can untick it, which then blocks sign-in (see _consentOk).
-      const c = this.config?.consent;
-      this._consentChecked = c?.enabled === true && c?.defaultChecked !== false;
+      const m = (_a2 = this.config) == null ? void 0 : _a2.marketing;
+      this._marketingOptIn = (m == null ? void 0 : m.enabled) === true && (m == null ? void 0 : m.defaultChecked) !== false;
+      const c = (_b = this.config) == null ? void 0 : _b.consent;
+      this._consentChecked = (c == null ? void 0 : c.enabled) === true && (c == null ? void 0 : c.defaultChecked) !== false;
     }
   }
-
   // Resolve the widget strings: the active-locale strings the Liquid block inlines
   // (`messages`, via Shopify's `t` filter — no fetch), plus any merchant overrides
   // from the published config (keyed by storefront locale).
   async _loadI18n() {
+    var _a2, _b, _c, _d;
     const win = typeof window !== "undefined" ? window.__hikoSignin : null;
-    const injected = this.config?.messages || win?.messages || null;
-    const locale = this.config?.i18nLocale || win?.i18nLocale || "en";
-    const overridesByLocale = this.config?.widgetText || win?.config?.widgetText || null;
-    if (!injected && !overridesByLocale) return; // English default, no overrides — nothing to do
+    const injected = ((_a2 = this.config) == null ? void 0 : _a2.messages) || (win == null ? void 0 : win.messages) || null;
+    const locale = ((_b = this.config) == null ? void 0 : _b.i18nLocale) || (win == null ? void 0 : win.i18nLocale) || "en";
+    const overridesByLocale = ((_c = this.config) == null ? void 0 : _c.widgetText) || ((_d = win == null ? void 0 : win.config) == null ? void 0 : _d.widgetText) || null;
+    if (!injected && !overridesByLocale) return;
     const messages = await resolveMessages({ injected, locale, overridesByLocale });
     if (messages !== DEFAULT) this._t = messages;
   }
-
   async _loadConfig() {
     try {
       this.config = await this._transport.getConfig();
@@ -465,7 +347,6 @@ class HikoSignin extends LitElement {
       this._error = this._t.errorUnavailable;
     }
   }
-
   // Hand the freshly minted hint to the broker via a first-party /oidc/prime hop
   // so it survives Shopify's customer-accounts redirect (which strips
   // login_hint). prime stores it in a first-party cookie; /oidc/authorize then
@@ -473,12 +354,9 @@ class HikoSignin extends LitElement {
   // page. Falls back to the legacy direct navigation when the broker origin
   // isn't in the published config yet (safe during rollout).
   _continueToLogin(login_hint) {
-    const appOrigin = this.config?.appOrigin;
+    var _a2;
+    const appOrigin = (_a2 = this.config) == null ? void 0 : _a2.appOrigin;
     if (appOrigin && this.loginUrl) {
-      // prime's open-redirect guard requires an absolute https URL. loginUrl is
-      // usually Shopify's root-relative routes.account_login_url (/account/login),
-      // so resolve it against the storefront origin the customer is on (an
-      // already-absolute loginUrl passes through unchanged).
       const next = new URL(this.loginUrl, window.location.origin).href;
       this._navigate(`${appOrigin.replace(/\/$/, "")}/oidc/prime?hint=${encodeURIComponent(login_hint)}&next=${encodeURIComponent(next)}`);
       return;
@@ -486,26 +364,25 @@ class HikoSignin extends LitElement {
     const sep = this.loginUrl.includes("?") ? "&" : "?";
     this._navigate(`${this.loginUrl}${sep}login_hint=${encodeURIComponent(login_hint)}`);
   }
-
   // Tri-state opt-in signal sent to /select: the shopper's choice (true/false)
   // only when the checkbox is actually shown (marketing enabled), else null so
   // the server leaves consent untouched. Never report a choice the shopper
   // wasn't given.
   get _optInSignal() {
-    return this.config?.marketing?.enabled ? this._marketingOptIn : null;
+    var _a2, _b;
+    return ((_b = (_a2 = this.config) == null ? void 0 : _a2.marketing) == null ? void 0 : _b.enabled) ? this._marketingOptIn : null;
   }
-
   // Mandatory terms-consent gate. When the consent box is enabled but unticked,
   // block sign-in and surface a red error under it. Returns true when OK to go on.
   _consentOk() {
-    if (this.config?.consent?.enabled && !this._consentChecked) {
+    var _a2, _b;
+    if (((_b = (_a2 = this.config) == null ? void 0 : _a2.consent) == null ? void 0 : _b.enabled) && !this._consentChecked) {
       this._consentError = this._t.consentRequired;
       return false;
     }
     this._consentError = null;
     return true;
   }
-
   // Transport seam contract for selectSocial / selectEmail:
   //   • App-proxy transport: returns { login_hint } — the widget then calls
   //     _continueToLogin(login_hint) to navigate to the OIDC flow.
@@ -514,29 +391,28 @@ class HikoSignin extends LitElement {
   //     login_hint). The widget detects the absence of login_hint and skips
   //     _continueToLogin, leaving the transport in full control of navigation.
   async _onSocial(provider) {
-    if (this._socialLoading) return; // ignore re-clicks while a redirect is starting
+    if (this._socialLoading) return;
     this._error = null;
-    if (!this._consentOk()) return; // mandatory terms consent must be ticked first
-    this._socialLoading = provider; // disables the buttons + shows a spinner on this one
+    if (!this._consentOk()) return;
+    this._socialLoading = provider;
     logger.info("social select:", provider);
     try {
       const result = await this._transport.selectSocial(provider, null, this._optInSignal);
-      const login_hint = result?.login_hint;
+      const login_hint = result == null ? void 0 : result.login_hint;
       this.dispatchEvent(new CustomEvent("hiko-signin:redirect", { detail: { provider, login_hint }, bubbles: true, composed: true }));
       if (!this.preview && login_hint) {
         logger.debug("redirecting to login");
         this._continueToLogin(login_hint);
-        return; // navigating away — keep the loading state until the page changes
+        return;
       }
-      this._socialLoading = null; // preview: no navigation, restore the buttons
-    } catch (e) {
-      logger.error("social select failed:", e?.code || e?.message);
-      this._error = e?.code === "provider_not_enabled" ? this._t.errorMethod : this._t.errorStart;
       this._socialLoading = null;
-      this.dispatchEvent(new CustomEvent("hiko-signin:error", { detail: { code: e?.code }, bubbles: true, composed: true }));
+    } catch (e) {
+      logger.error("social select failed:", (e == null ? void 0 : e.code) || (e == null ? void 0 : e.message));
+      this._error = (e == null ? void 0 : e.code) === "provider_not_enabled" ? this._t.errorMethod : this._t.errorStart;
+      this._socialLoading = null;
+      this.dispatchEvent(new CustomEvent("hiko-signin:error", { detail: { code: e == null ? void 0 : e.code }, bubbles: true, composed: true }));
     }
   }
-
   async _onEmailSubmit(e) {
     e.preventDefault();
     const email = String(new FormData(e.currentTarget).get("email") ?? "").trim();
@@ -545,47 +421,38 @@ class HikoSignin extends LitElement {
       return;
     }
     this._error = null;
-    if (!this._consentOk()) return; // mandatory terms consent must be ticked first
+    if (!this._consentOk()) return;
     this._emailLoading = true;
     try {
       const result = await this._transport.selectEmail(email, this._optInSignal);
-      const login_hint = result?.login_hint;
+      const login_hint = result == null ? void 0 : result.login_hint;
       this.dispatchEvent(new CustomEvent("hiko-signin:redirect", { detail: { kind: "email", login_hint }, bubbles: true, composed: true }));
       if (!this.preview && login_hint) {
         this._continueToLogin(login_hint);
-        return; // navigating away — keep the spinner until the page changes
+        return;
       }
-      this._emailLoading = false; // preview: no navigation, restore the button
+      this._emailLoading = false;
     } catch {
       this._error = this._t.errorStart;
       this._emailLoading = false;
     }
   }
-
   render() {
-    const providers = this.config?.providers ?? [];
-    const st = this.config?.styles ?? {};
+    var _a2, _b, _c, _d, _e, _f, _g, _h;
+    const providers = ((_a2 = this.config) == null ? void 0 : _a2.providers) ?? [];
+    const st = ((_b = this.config) == null ? void 0 : _b.styles) ?? {};
     const radius = { pill: "999px", rounded: "8px", square: "0" }[st.shape] ?? "8px";
     const theme = ["color", "dark", "light"].includes(st.theme) ? st.theme : "color";
     const format = ["icontext", "center", "right", "text", "icon"].includes(st.format) ? st.format : "icontext";
     const btn = { small: "0.5rem 0.75rem/0.875rem/0.3rem", medium: "0.7rem 1rem/1rem/0.5rem", large: "0.95rem 1.25rem/1.125rem/0.7rem" }[st.buttonSize] ?? "0.7rem 1rem/1rem/0.5rem";
     const [btnPad, btnFont, iconPad] = btn.split("/");
-    // Optional explicit overrides (blank/0 = inherit): a px icon size wins over
-    // the small/medium/large preset.
-    const icoSize = st.iconPx ? `${st.iconPx}px` : ({ small: "16px", medium: "20px", large: "26px" }[st.iconSize] ?? "20px");
-    // Per-button overrides applied inline (highest specificity → beat the theme):
-    // background colour, border, and a fixed button height.
+    const icoSize = st.iconPx ? `${st.iconPx}px` : { small: "16px", medium: "20px", large: "26px" }[st.iconSize] ?? "20px";
     let btnOverride = "";
-    // A custom background sets the button colour AND a contrasting text colour, so
-    // the label and any monochrome/currentColor icon stay legible.
     if (st.bgColor) btnOverride += `background:${st.bgColor};color:${isLightColor(st.bgColor) ? "#1a1a1a" : "#ffffff"};`;
     if (st.borderWidth) btnOverride += `border:${st.borderWidth}px solid ${st.borderColor || "#cccccc"};`;
     if (st.buttonHeight) btnOverride += `min-height:${st.buttonHeight}px;`;
-    // Email field is the OTP entry point — hide it (and the divider that sets it
-    // off from the social buttons) when email one-time code is turned off.
-    const showEmail = this.config?.passwordless?.otp !== false;
+    const showEmail = ((_d = (_c = this.config) == null ? void 0 : _c.passwordless) == null ? void 0 : _d.otp) !== false;
     const showDivider = st.divider !== false && showEmail;
-    // Label typography overrides (blank = inherit the button-size preset).
     const lblVars = `${st.labelPx ? `;--hs-lbl-size:${st.labelPx}px` : ""}${st.labelWeight ? `;--hs-lbl-weight:${st.labelWeight}` : ""}${st.labelColor ? `;--hs-lbl-color:${st.labelColor}` : ""}`;
     const vars = `--hs-radius:${radius};--hs-btn-pad:${btnPad};--hs-btn-font:${btnFont};--hs-icon-pad:${iconPad};--hs-ico-size:${icoSize}${lblVars}`;
     return html`
@@ -593,69 +460,68 @@ class HikoSignin extends LitElement {
         ${this._error ? html`<div class="hs-error" role="alert">${this._error}</div>` : null}
         <div class="hs-social">
           ${providers.map((name) => {
-            const d = providerDisplay(name);
-            // The icon mark, with a built-in contrast guarantee: a merchant-picked
-            // variant is honored unless it would blend into the button background,
-            // in which case pickIconMark falls back to a theme-appropriate visible
-            // mark (see icons.js). "default"/unset → the theme-appropriate mark.
-            // A custom background overrides the button colour, so the contrast
-            // check uses it to keep the icon visible.
-            const mark = pickIconMark(name, this.config?.providerIcons?.[name], theme, format, st.bgColor || null);
-            // Localized "Continue with {brand}" — prefix translates, brand stays.
-            const label = (this._t.continueWith || "{provider}").replace("{provider}", d.brand);
-            const loading = this._socialLoading === name;
-            return html`<button class="hs-btn" type="button" data-provider=${name} title=${label}
+      var _a3, _b2;
+      const d = providerDisplay(name);
+      const mark = pickIconMark(name, (_b2 = (_a3 = this.config) == null ? void 0 : _a3.providerIcons) == null ? void 0 : _b2[name], theme, format, st.bgColor || null);
+      const label = (this._t.continueWith || "{provider}").replace("{provider}", d.brand);
+      const loading = this._socialLoading === name;
+      return html`<button class="hs-btn" type="button" data-provider=${name} title=${label}
               ?disabled=${this._socialLoading != null} aria-busy=${loading ? "true" : "false"}
               style="--c:${d.color};${btnOverride}" @click=${() => this._onSocial(name)}>
-              ${loading
-                ? html`<span class="hs-spinner hs-spinner-btn" aria-hidden="true"></span>`
-                : (mark ? html`<span class="hs-ico">${unsafeSVG(mark)}</span>` : null)}<span class="hs-lbl">${label}</span>
+              ${loading ? html`<span class="hs-spinner hs-spinner-btn" aria-hidden="true"></span>` : mark ? html`<span class="hs-ico">${unsafeSVG(mark)}</span>` : null}<span class="hs-lbl">${label}</span>
             </button>`;
-          })}
+    })}
         </div>
         ${providers.length && showDivider ? html`<div class="hs-divider" role="separator">${this._t.or}</div>` : null}
-        ${showEmail
-          ? html`<form class="hs-email" @submit=${this._onEmailSubmit}>
+        ${showEmail ? html`<form class="hs-email" @submit=${this._onEmailSubmit}>
           <div class="hs-email-field">
             <input type="email" name="email" placeholder=${this._t.emailPlaceholder} autocomplete="username" required ?disabled=${this._emailLoading} />
             <button type="submit" aria-label=${this._t.continue} ?disabled=${this._emailLoading}>
-              ${this._emailLoading ? html`<span class="hs-spinner" aria-hidden="true"></span>` : "→"}
+              ${this._emailLoading ? html`<span class="hs-spinner" aria-hidden="true"></span>` : "\u2192"}
             </button>
           </div>
-        </form>`
-          : null}
-        ${this.config?.marketing?.enabled ? html`
+        </form>` : null}
+        ${((_f = (_e = this.config) == null ? void 0 : _e.marketing) == null ? void 0 : _f.enabled) ? html`
           <label class="hs-marketing">
             <input type="checkbox" name="hs-marketing" .checked=${this._marketingOptIn}
-              @change=${(e) => { this._marketingOptIn = e.target.checked; }} />
+              @change=${(e) => {
+      this._marketingOptIn = e.target.checked;
+    }} />
             <span>${unsafeHTML(sanitizeLabelHtml(decodeBasicEntities(this._t.marketingOptIn)))}</span>
           </label>` : null}
-        ${this.config?.consent?.enabled ? html`
+        ${((_h = (_g = this.config) == null ? void 0 : _g.consent) == null ? void 0 : _h.enabled) ? html`
           <label class="hs-marketing hs-consent">
             <input type="checkbox" name="hs-consent" .checked=${this._consentChecked}
-              @change=${(e) => { this._consentChecked = e.target.checked; if (e.target.checked) this._consentError = null; }} />
+              @change=${(e) => {
+      this._consentChecked = e.target.checked;
+      if (e.target.checked) this._consentError = null;
+    }} />
             <span>${unsafeHTML(sanitizeLabelHtml(decodeBasicEntities(this._t.consentLabel)))}</span>
           </label>
           ${this._consentError ? html`<div class="hs-consent-error" role="alert">${this._consentError}</div>` : null}` : null}
       </div>`;
   }
-
-}
-
+};
 function defineHikoSignin(transportFactory) {
   HikoSignin.transportFactory = transportFactory;
   if (!customElements.get("hiko-signin")) customElements.define("hiko-signin", HikoSignin);
 }
 
+// src/token-store.js
 function memoryTokenStore() {
   let tokens = null;
   return {
     get: () => tokens,
-    set: (t) => { tokens = t; },
-    clear: () => { tokens = null; },
+    set: (t) => {
+      tokens = t;
+    },
+    clear: () => {
+      tokens = null;
+    }
   };
 }
 
+// src/config-client.js
 async function loadConfig({ configServer, shop, fetchImpl = fetch }) {
   const url = `${configServer}/headless/config?shop=${encodeURIComponent(shop)}`;
   const res = await fetchImpl(url);
@@ -663,9 +529,8 @@ async function loadConfig({ configServer, shop, fetchImpl = fetch }) {
   return res.json();
 }
 
-// NOTE: confirm API_VERSION + graphql path against Shopify Customer Account API docs.
-const API_VERSION = "2026-04";
-
+// src/discovery.js
+var API_VERSION = "2026-04";
 async function discover({ shopId, fetchImpl = fetch }) {
   const base = `https://shopify.com/authentication/${shopId}`;
   const res = await fetchImpl(`${base}/.well-known/openid-configuration`);
@@ -675,10 +540,11 @@ async function discover({ shopId, fetchImpl = fetch }) {
     authorizationEndpoint: m.authorization_endpoint,
     tokenEndpoint: m.token_endpoint,
     endSessionEndpoint: m.end_session_endpoint,
-    graphqlEndpoint: `https://shopify.com/${shopId}/account/customer/api/${API_VERSION}/graphql`,
+    graphqlEndpoint: `https://shopify.com/${shopId}/account/customer/api/${API_VERSION}/graphql`
   };
 }
 
+// src/oauth.js
 function buildAuthorizeUrl({ authorizationEndpoint, clientId, redirectUri, scope, state, codeChallenge, providerHint }) {
   const u = new URL(authorizationEndpoint);
   const p = u.searchParams;
@@ -689,96 +555,95 @@ function buildAuthorizeUrl({ authorizationEndpoint, clientId, redirectUri, scope
   p.set("state", state);
   p.set("code_challenge", codeChallenge);
   p.set("code_challenge_method", "S256");
-  if (providerHint) p.set("login_hint", providerHint); // routed to the provider via the signin IdP
+  if (providerHint) p.set("login_hint", providerHint);
   return u.toString();
 }
-
 function toTokens(j) {
   return {
     accessToken: j.access_token,
     refreshToken: j.refresh_token,
     idToken: j.id_token,
-    expiresAt: Date.now() + (j.expires_in ?? 0) * 1000,
+    expiresAt: Date.now() + (j.expires_in ?? 0) * 1e3
   };
 }
-
 async function postToken(tokenEndpoint, params, fetchImpl) {
   const res = await fetchImpl(tokenEndpoint, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams(params).toString(),
+    body: new URLSearchParams(params).toString()
   });
   if (!res.ok) throw new Error("token_request_failed");
   return toTokens(await res.json());
 }
-
 function exchangeCode({ tokenEndpoint, clientId, code, codeVerifier, redirectUri, fetchImpl = fetch }) {
   return postToken(tokenEndpoint, {
-    grant_type: "authorization_code", client_id: clientId, code,
-    code_verifier: codeVerifier, redirect_uri: redirectUri,
+    grant_type: "authorization_code",
+    client_id: clientId,
+    code,
+    code_verifier: codeVerifier,
+    redirect_uri: redirectUri
   }, fetchImpl);
 }
-
 function refreshTokens({ tokenEndpoint, clientId, refreshToken, fetchImpl = fetch }) {
   return postToken(tokenEndpoint, {
-    grant_type: "refresh_token", client_id: clientId, refresh_token: refreshToken,
+    grant_type: "refresh_token",
+    client_id: clientId,
+    refresh_token: refreshToken
   }, fetchImpl);
 }
 
+// src/customer-api.js
 async function customerQuery({ graphqlEndpoint, accessToken, query, variables, fetchImpl = fetch }) {
   const res = await fetchImpl(graphqlEndpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json", "Authorization": accessToken },
-    body: JSON.stringify({ query, variables }),
+    body: JSON.stringify({ query, variables })
   });
   if (res.status === 401) throw new Error("unauthorized");
   if (!res.ok) throw new Error("graphql_request_failed");
   const { data, errors } = await res.json();
-  if (errors?.length) throw Object.assign(new Error("graphql_errors"), { errors });
+  if (errors == null ? void 0 : errors.length) throw Object.assign(new Error("graphql_errors"), { errors });
   return data;
 }
 
-const b64url = (bytes) => btoa(String.fromCharCode(...new Uint8Array(bytes)))
-  .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-
+// src/pkce.js
+var b64url = (bytes) => btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 function randomString(bytes = 32) {
   return b64url(crypto.getRandomValues(new Uint8Array(bytes)));
 }
-
 function generateVerifier() {
-  // 32 random bytes → 43 base64url chars (within the 43–128 spec range).
   return randomString(32);
 }
-
 async function challengeFromVerifier(verifier) {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
   return b64url(digest);
 }
 
 // src/auth.js
-
-const PKCE_KEY = "hiko:pkce";
-
+var PKCE_KEY = "hiko:pkce";
 function createHeadlessAuth(opts) {
   const {
-    shop, configServer = "https://hiko.link", clientId, shopId,
-    redirectUri = (typeof location !== "undefined" ? location.origin + location.pathname : ""),
+    shop,
+    configServer = "https://hiko.link",
+    clientId,
+    shopId,
+    redirectUri = typeof location !== "undefined" ? location.origin + location.pathname : "",
     scope = "openid email customer-account-api:full",
-    tokenStore = memoryTokenStore(), fetchImpl = fetch,
+    tokenStore = memoryTokenStore(),
+    fetchImpl = fetch
   } = opts;
-
-  const listeners = new Set();
+  const listeners = /* @__PURE__ */ new Set();
   const emit = () => listeners.forEach((cb) => cb(api));
   let endpoints = null;
-  const getEndpoints = async () => (endpoints ??= await discover({ shopId, fetchImpl }));
-
+  const getEndpoints = async () => endpoints ??= await discover({ shopId, fetchImpl });
   const api = {
     _navigate: (url) => location.assign(url),
-    _getCallbackParams: () => { const q = new URL(location.href).searchParams; return { code: q.get("code"), state: q.get("state") }; },
+    _getCallbackParams: () => {
+      const q = new URL(location.href).searchParams;
+      return { code: q.get("code"), state: q.get("state") };
+    },
     _tokenStore: () => tokenStore,
-
     loadConfig: () => loadConfig({ configServer, shop, fetchImpl }),
-
     async login(providerHint) {
       const ep = await getEndpoints();
       const verifier = generateVerifier();
@@ -787,12 +652,10 @@ function createHeadlessAuth(opts) {
       sessionStorage.setItem(PKCE_KEY, JSON.stringify({ state, verifier }));
       api._navigate(buildAuthorizeUrl({ authorizationEndpoint: ep.authorizationEndpoint, clientId, redirectUri, scope, state, codeChallenge, providerHint }));
     },
-
     hasPendingCallback() {
       const { code, state } = api._getCallbackParams();
       return Boolean(code && state);
     },
-
     async handleCallback() {
       const { code, state } = api._getCallbackParams();
       const saved = JSON.parse(sessionStorage.getItem(PKCE_KEY) || "null");
@@ -803,33 +666,36 @@ function createHeadlessAuth(opts) {
       sessionStorage.removeItem(PKCE_KEY);
       emit();
     },
-
-    isLoggedIn: () => Boolean(tokenStore.get()?.accessToken),
-
+    isLoggedIn: () => {
+      var _a2;
+      return Boolean((_a2 = tokenStore.get()) == null ? void 0 : _a2.accessToken);
+    },
     async query(query, variables) {
+      var _a2;
       const ep = await getEndpoints();
       const run = (at) => customerQuery({ graphqlEndpoint: ep.graphqlEndpoint, accessToken: at, query, variables, fetchImpl });
       try {
-        return await run(tokenStore.get()?.accessToken);
+        return await run((_a2 = tokenStore.get()) == null ? void 0 : _a2.accessToken);
       } catch (e) {
         if (e.message !== "unauthorized") throw e;
         const cur = tokenStore.get();
-        if (!cur?.refreshToken) throw e;
+        if (!(cur == null ? void 0 : cur.refreshToken)) throw e;
         const fresh = await refreshTokens({ tokenEndpoint: ep.tokenEndpoint, clientId, refreshToken: cur.refreshToken, fetchImpl });
         tokenStore.set(fresh);
         emit();
         return run(fresh.accessToken);
       }
     },
-
     async logout() {
       const ep = await getEndpoints();
       tokenStore.clear();
       emit();
       api._navigate(ep.endSessionEndpoint);
     },
-
-    onChange(cb) { listeners.add(cb); return () => listeners.delete(cb); },
+    onChange(cb) {
+      listeners.add(cb);
+      return () => listeners.delete(cb);
+    }
   };
   return api;
 }
@@ -838,29 +704,37 @@ function createHeadlessAuth(opts) {
 function createHeadlessTransport(auth) {
   return {
     getConfig: () => auth.loadConfig(),
-    selectSocial: async (provider) => { await auth.login(provider); return {}; },
-    selectEmail: async () => { await auth.login(); return {}; },
+    selectSocial: async (provider) => {
+      await auth.login(provider);
+      return {};
+    },
+    selectEmail: async () => {
+      await auth.login();
+      return {};
+    }
   };
 }
 
 // src/element.js
-
 function registerHikoSignin() {
   defineHikoSignin((el) => {
     const auth = createHeadlessAuth({
       shop: el.getAttribute("shop"),
-      configServer: el.getAttribute("config-server") || undefined,
+      configServer: el.getAttribute("config-server") || void 0,
       clientId: el.getAttribute("client-id"),
       shopId: el.getAttribute("shop-id"),
-      redirectUri: el.getAttribute("redirect-uri") || undefined,
+      redirectUri: el.getAttribute("redirect-uri") || void 0
     });
-    // Complete a redirect-back on the page hosting the element.
-    if (auth.hasPendingCallback()) auth.handleCallback().catch(() => {});
-    el._auth = auth; // expose for app code: el._auth.query(...)
+    if (auth.hasPendingCallback()) auth.handleCallback().catch(() => {
+    });
+    el._auth = auth;
     return createHeadlessTransport(auth);
   });
 }
-
 registerHikoSignin();
 
-export { createHeadlessAuth as c, memoryTokenStore as m, registerHikoSignin };
+export {
+  memoryTokenStore,
+  createHeadlessAuth,
+  registerHikoSignin
+};

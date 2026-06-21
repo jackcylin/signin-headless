@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { HikoSignin } from "@hiko/signin-widget";
+import { HikoSignin } from "../src/widget/index.js";
 import { registerHikoSignin } from "../src/index.js";
 
 beforeEach(() => { HikoSignin.transportFactory = null; });

@@ -1,0 +1,18 @@
+<!doctype html><meta charset="utf-8" />
+<h1>HIKO headless sign-in (dev)</h1>
+<div id="mount"></div>
+<button id="whoami">whoami</button>
+<pre id="out"></pre>
+<script type="module">
+  import "./src/element.js"; // registers <hiko-signin>
+  const el = document.createElement("hiko-signin");
+  el.setAttribute("shop", import.meta.env.VITE_SHOP);
+  el.setAttribute("client-id", import.meta.env.VITE_CLIENT_ID);
+  el.setAttribute("shop-id", import.meta.env.VITE_SHOP_ID);
+  el.setAttribute("config-server", import.meta.env.VITE_CONFIG_SERVER || "https://hiko.link");
+  document.getElementById("mount").appendChild(el);
+  document.getElementById("whoami").onclick = async () => {
+    const data = await el._auth.query("{ customer { firstName emailAddress { emailAddress } } }");
+    document.getElementById("out").textContent = JSON.stringify(data, null, 2);
+  };
+</script>

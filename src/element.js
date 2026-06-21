@@ -1,5 +1,5 @@
 // src/element.js
-import { defineHikoSignin } from "@hiko/signin-widget";
+import { defineHikoSignin } from "./widget/index.js";
 import { createHeadlessAuth } from "./auth.js";
 import { createHeadlessTransport } from "./transport.js";
 
