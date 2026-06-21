@@ -8,9 +8,6 @@ export function registerHikoSignin() {
     const auth = createHeadlessAuth({
       shop: el.getAttribute("shop"),
       configServer: el.getAttribute("config-server") || undefined,
-      clientId: el.getAttribute("client-id"),
-      shopId: el.getAttribute("shop-id"),
-      redirectUri: el.getAttribute("redirect-uri") || undefined,
     });
     // Complete a redirect-back on the page hosting the element.
     if (auth.hasPendingCallback()) auth.handleCallback().catch(() => {});
