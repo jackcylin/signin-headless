@@ -18,3 +18,37 @@ it("registers <hiko-signin> wired to a headless transport built from attributes"
   expect(el._transport).toBeTruthy();
   expect(typeof el._transport.getConfig).toBe("function");
 });
+
+it("auto-fetches per-shop config and renders the provider buttons", async () => {
+  const config = {
+    entitled: true,
+    providers: ["google", "facebook"],
+    styles: {},
+    passwordless: { otp: true, passkey: false },
+    storefront: {},
+    widgetText: {},
+    consent: { enabled: false, defaultChecked: true },
+  };
+  globalThis.fetch = vi.fn(async (url) =>
+    String(url).includes("/headless/config")
+      ? new Response(JSON.stringify(config), { status: 200 })
+      : new Response("{}", { status: 200 }),
+  );
+  registerHikoSignin();
+  const el = document.createElement("hiko-signin");
+  el.setAttribute("shop", "s.myshopify.com");
+  el.setAttribute("client-id", "cid");
+  el.setAttribute("shop-id", "123");
+  el.setAttribute("config-server", "https://cfg.test");
+  document.body.appendChild(el);
+
+  // The widget self-fetches config on connect (because the headless factory sets
+  // fetchConfig=true) and renders one button per provider.
+  await vi.waitFor(() => {
+    const btns = el.shadowRoot.querySelectorAll("button[data-provider]");
+    expect(btns.length).toBe(2);
+  });
+  expect(globalThis.fetch).toHaveBeenCalledWith(
+    "https://cfg.test/headless/config?shop=s.myshopify.com",
+  );
+});
