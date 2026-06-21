@@ -1,84 +1,98 @@
 // src/auth.js
-import { memoryTokenStore } from "./token-store.js";
-import { loadConfig } from "./config-client.js";
-import { discover } from "./discovery.js";
-import { buildAuthorizeUrl, exchangeCode, refreshTokens } from "./oauth.js";
-import { customerQuery } from "./customer-api.js";
-import { generateVerifier, challengeFromVerifier, randomString } from "./pkce.js";
+import { loadConfig as _loadConfig } from "./config-client.js";
 
-const PKCE_KEY = "hiko:pkce";
-
-export function createHeadlessAuth(opts) {
-  const {
-    shop, configServer = "https://signin.hiko.software", clientId, shopId,
-    redirectUri = (typeof location !== "undefined" ? location.origin + location.pathname : ""),
-    scope = "openid email customer-account-api:full",
-    tokenStore = memoryTokenStore(), fetchImpl = fetch,
-  } = opts;
-
+export function createHeadlessAuth({
+  shop,
+  configServer = "https://signin.hiko.software",
+  returnUrl,
+  fetchImpl = fetch,
+} = {}) {
+  let token = null;
   const listeners = new Set();
   const emit = () => listeners.forEach((cb) => cb(api));
-  let endpoints = null;
-  const getEndpoints = async () => (endpoints ??= await discover({ shopId, fetchImpl }));
 
   const api = {
+    // Seams (overridable for testing)
     _navigate: (url) => location.assign(url),
-    _getCallbackParams: () => { const q = new URL(location.href).searchParams; return { code: q.get("code"), state: q.get("state") }; },
-    _tokenStore: () => tokenStore,
+    _getHash: () => location.hash,
 
-    loadConfig: () => loadConfig({ configServer, shop, fetchImpl }),
+    loadConfig() {
+      return _loadConfig({ configServer, shop, fetchImpl });
+    },
 
-    async login(providerHint) {
-      const ep = await getEndpoints();
-      const verifier = generateVerifier();
-      const state = randomString(16);
-      const codeChallenge = await challengeFromVerifier(verifier);
-      sessionStorage.setItem(PKCE_KEY, JSON.stringify({ state, verifier }));
-      api._navigate(buildAuthorizeUrl({ authorizationEndpoint: ep.authorizationEndpoint, clientId, redirectUri, scope, state, codeChallenge, providerHint }));
+    login(provider) {
+      const rt = returnUrl ?? (typeof location !== "undefined" ? location.href : "");
+      const url = new URL(`${configServer}/headless/start`);
+      url.searchParams.set("shop", shop);
+      url.searchParams.set("return", rt);
+      if (provider) url.searchParams.set("provider", provider);
+      api._navigate(url.toString());
     },
 
     hasPendingCallback() {
-      const { code, state } = api._getCallbackParams();
-      return Boolean(code && state);
+      const hash = api._getHash();
+      return hash.includes("hiko_session=");
     },
 
-    async handleCallback() {
-      const { code, state } = api._getCallbackParams();
-      const saved = JSON.parse(sessionStorage.getItem(PKCE_KEY) || "null");
-      if (!saved || saved.state !== state) throw new Error("state_mismatch");
-      const ep = await getEndpoints();
-      const tokens = await exchangeCode({ tokenEndpoint: ep.tokenEndpoint, clientId, code, codeVerifier: saved.verifier, redirectUri, fetchImpl });
-      tokenStore.set(tokens);
-      sessionStorage.removeItem(PKCE_KEY);
+    handleCallback() {
+      const hash = api._getHash();
+      const params = new URLSearchParams(hash.slice(1));
+      const sessionToken = params.get("hiko_session");
+      if (!sessionToken) return false;
+      token = sessionToken;
+      history.replaceState(null, "", location.pathname + location.search);
       emit();
+      return true;
     },
 
-    isLoggedIn: () => Boolean(tokenStore.get()?.accessToken),
+    isLoggedIn() {
+      return token !== null;
+    },
 
     async query(query, variables) {
-      const ep = await getEndpoints();
-      const run = (at) => customerQuery({ graphqlEndpoint: ep.graphqlEndpoint, accessToken: at, query, variables, fetchImpl });
-      try {
-        return await run(tokenStore.get()?.accessToken);
-      } catch (e) {
-        if (e.message !== "unauthorized") throw e;
-        const cur = tokenStore.get();
-        if (!cur?.refreshToken) throw e;
-        const fresh = await refreshTokens({ tokenEndpoint: ep.tokenEndpoint, clientId, refreshToken: cur.refreshToken, fetchImpl });
-        tokenStore.set(fresh);
+      const res = await fetchImpl(`${configServer}/headless/customer`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({ query, variables }),
+      });
+      if (res.status === 401) {
+        token = null;
         emit();
-        return run(fresh.accessToken);
+        throw new Error("unauthorized");
       }
+      if (!res.ok) throw new Error(`query_failed:${res.status}`);
+      const json = await res.json();
+      return json.data;
+    },
+
+    async session() {
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+      const res = await fetchImpl(`${configServer}/headless/session`, { headers });
+      if (!res.ok) throw new Error(`session_failed:${res.status}`);
+      return res.json();
     },
 
     async logout() {
-      const ep = await getEndpoints();
-      tokenStore.clear();
+      await fetchImpl(`${configServer}/headless/logout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+      token = null;
       emit();
-      api._navigate(ep.endSessionEndpoint);
     },
 
-    onChange(cb) { listeners.add(cb); return () => listeners.delete(cb); },
+    onChange(cb) {
+      listeners.add(cb);
+      return () => listeners.delete(cb);
+    },
   };
+
   return api;
 }
