@@ -1,74 +1,72 @@
 # @hiko/signin-headless
 
-Headless social login for Shopify **new customer accounts** — a browser-only,
-**public-client + PKCE** module that drops the same `<hiko-signin>` widget your
-theme storefront uses into any headless storefront (React, Vue, Hydrogen, plain
-HTML…), with **no backend required**.
+Headless social login for Shopify **new customer accounts** — drops the same
+`<hiko-signin>` widget your theme storefront uses into any headless storefront
+(React, Vue, Hydrogen, plain HTML…).
 
 It is the headless companion to **HIKO Social Login Plus** — install that app on
 your store and this module renders its configured providers and runs the login.
 
 - App Store: **[HIKO Social Login Plus](https://apps.shopify.com/simple-social-login)** (HIKO Software)
-- Config/provider setup lives in the HIKO admin; this module only consumes it.
+- Provider setup lives in the HIKO admin; this module only consumes it.
 
 ---
 
 ## Design principles
 
-- **Public client, browser-only.** Login runs as an OAuth **PKCE** flow entirely
-  in the browser against Shopify's Customer Account API. There is **no server to
-  deploy** — ideal for static/JAMstack storefronts.
-- **Token in the browser (in-memory).** The Customer Account API access/refresh
-  tokens live only in an in-memory store; only the single-use PKCE
-  `{state, verifier}` touches `sessionStorage`. Nothing is written to
-  `localStorage` or cookies. (See [Security](#security) for the trade-off.)
-- **Direct Customer Account API.** After login you query the logged-in customer's
-  data (profile, orders, addresses) directly via GraphQL — no BFF/proxy.
-- **Config from the HIKO server.** Which providers to show and how they look comes
-  from `GET <config-server>/headless/config?shop=…` at runtime, so the storefront
-  hard-codes almost nothing.
-- **Identical UI.** It renders the very same `<hiko-signin>` web component as the
-  HIKO theme-storefront widget, so headless and themed stores look the same.
+- **Broker model — tokens never leave the server.** Login and token exchange run
+  on the **HIKO server (broker)**; the browser never performs OAuth/PKCE and
+  never holds a Shopify Customer Account API token. After authentication the
+  browser holds only an **opaque session token** (in-memory), which it sends to
+  the broker's BFF for customer GraphQL queries.
+- **Works from `localhost` with no tunnel.** Because the broker handles all OAuth
+  redirects, the storefront origin never needs to be registered as a Shopify
+  redirect URI. Merchants add `http://localhost:5173` (or any origin) to the
+  **Allowed origins** list in the HIKO admin — that is all.
+- **Config from the HIKO server.** Which providers to show and how they look
+  comes from `GET <config-server>/headless/config?shop=…` at runtime.
+- **Identical UI.** Renders the same `<hiko-signin>` web component as the HIKO
+  theme-storefront widget.
 - **New customer accounts only.** Legacy/classic customer accounts are not
   supported.
 
 ---
 
-## Prerequisites (necessary conditions)
+## Prerequisites
 
-1. **The store has [HIKO Social Login Plus](https://apps.shopify.com/simple-social-login) installed** and your social
-   providers configured in its admin. Without it, `/headless/config` returns no
-   providers and the widget renders nothing.
+1. **The store has [HIKO Social Login Plus](https://apps.shopify.com/simple-social-login) installed** and social providers
+   configured in its admin. Without it, `/headless/config` returns no providers
+   and the widget renders nothing.
 2. **New customer accounts** are enabled on the store (Settings → Customer
    accounts). This module does not work with legacy/classic accounts.
-3. The store has the **Headless sales channel** installed, with its **Customer
-   Account API set up for a public, browser-based client** — see
-   [Required Shopify setup](#required-shopify-setup) below.
+3. **The merchant has completed the one-time HIKO admin setup** described below.
+   The storefront developer does NO Shopify setup.
 
 ---
 
-## Required Shopify setup
+## One-time merchant setup (HIKO admin)
 
-In Shopify admin → **Sales channels → Headless → your storefront → Customer
-Account API → *Application setup*** (install the **Headless** sales channel first
-if it isn't present). This screen — **not** Settings → Customer accounts — is where
-the Client ID / Shop ID live and where you configure:
+The merchant does this **once** in the HIKO admin — the storefront developer
+does not need to touch Shopify's Headless sales channel or configure any OAuth
+URIs.
 
-1. A **public** OAuth client with the **PKCE** flow.
-2. **JavaScript Origins** — add every storefront origin (enables CORS on the token
-   and GraphQL endpoints).
-3. **Redirect/Callback URIs** — the page(s) that host `<hiko-signin>` and complete
-   the redirect.
-4. (and confirm **new customer accounts** are enabled, under Settings → Customer
-   accounts).
+In **HIKO admin → Integrations → Customer Account API**:
 
-> **HTTPS only — no `localhost`.** Shopify rejects `http://` and `localhost`
-> origins/redirect URIs. For local development, expose your dev server over an
-> **HTTPS tunnel** (e.g. `ngrok http 5173` or `cloudflared`) and register the
-> tunnel URL in both JavaScript Origins and Redirect URIs.
-
-You then supply `client-id` and `shop-id` to this module (both public — see
-[Getting the values](#getting-the-config-values)).
+1. Enter the store's **Customer Account API Client ID** and **Client Secret**
+   (from Shopify admin → Sales channels → Headless → your storefront →
+   Customer Account API → Application setup).
+2. Enter the **Shop ID** (numeric; shown on the same Headless screen, and at
+   Settings → Customer accounts → URL as `https://shopify.com/<SHOP_ID>/account`).
+3. On the Shopify Customer Account API client, add the HIKO broker's
+   **single callback URL** as a Redirect URI:
+   `<config-server>/headless/callback`
+   (e.g. `https://signin.hiko.software/headless/callback`). This is the only
+   redirect URI that needs to be registered — it belongs to the HIKO server,
+   not the storefront.
+4. In the same HIKO admin screen, add every **storefront origin** to the
+   **Allowed origins** list — including `http://localhost:5173` for local
+   development. (These are HIKO-side CORS/session allowances, not Shopify
+   redirect URIs, so `http://localhost` is fine.)
 
 ---
 
@@ -87,8 +85,6 @@ npm install @hiko/signin-headless
 ```html
 <hiko-signin
   shop="your-shop.myshopify.com"
-  client-id="<public client id>"
-  shop-id="<numeric shop id>"
   config-server="https://signin.hiko.software">
 </hiko-signin>
 
@@ -97,29 +93,28 @@ npm install @hiko/signin-headless
 </script>
 ```
 
-After login, read the logged-in customer directly off the element:
+After login, query customer data through the broker BFF:
 
 ```js
 const el = document.querySelector("hiko-signin");
 const data = await el._auth.query("{ customer { firstName emailAddress { emailAddress } } }");
 ```
 
-### Programmatic SDK (drive it yourself)
+### Programmatic SDK
 
 ```js
 import { createHeadlessAuth } from "@hiko/signin-headless";
 
 const auth = createHeadlessAuth({
   shop: "your-shop.myshopify.com",
-  clientId: "<public client id>",
-  shopId: "<numeric shop id>",
   configServer: "https://signin.hiko.software", // optional, this is the default
 });
 
-await auth.loadConfig();         // providers + appearance from the HIKO server
-auth.login("google");            // → redirects to Shopify (PKCE)
-await auth.handleCallback();      // on the redirect-back page: exchanges the code
-await auth.query("{ customer { firstName } }");  // direct Customer Account API
+await auth.loadConfig();          // providers + appearance from the HIKO server
+auth.login("google");             // → redirects to the HIKO broker → Shopify
+await auth.handleCallback();       // on the redirect-back page: exchanges broker code
+                                   // for an opaque session token (in-memory)
+await auth.query("{ customer { firstName } }"); // BFF: broker proxies to Customer Account API
 await auth.logout();
 ```
 
@@ -130,15 +125,18 @@ side-effect `@hiko/signin-headless/element` entry (registers `<hiko-signin>`).
 
 ## Getting the config values
 
-All four values are **public** (no secrets). The `<hiko-signin>` attributes map to
-the `VITE_*` env vars used by the local dev server (see [Run locally](#run-locally)).
+The storefront only needs two values. The Customer Account API client id, secret,
+and shop id are entered by the **merchant** in the HIKO admin (one-time) and are
+never exposed to the storefront.
 
-| Attribute / env | What it is | Where to get it |
+| Attribute / env var | What it is | Where to get it |
 | --- | --- | --- |
 | `shop` / `VITE_SHOP` | Store domain `*.myshopify.com` | Shopify admin → Settings → Domains, or your admin URL (`admin.shopify.com/store/<handle>`) |
-| `client-id` / `VITE_CLIENT_ID` | Customer Account API **public** client id | Admin → **Sales channels → Headless → your storefront → Customer Account API → *Application setup*** (the same screen as the setup above) |
-| `shop-id` / `VITE_SHOP_ID` | **Numeric** shop id | Same Headless → Customer Account API screen (listed next to the Client ID). Also visible at Settings → Customer accounts → URL as `https://shopify.com/<SHOP_ID>/account`. |
-| `config-server` / `VITE_CONFIG_SERVER` | HIKO server serving per-shop config | `https://signin.hiko.software` (default; only change if you self-host HIKO) |
+| `config-server` / `VITE_CONFIG_SERVER` | HIKO server (broker + config) | `https://signin.hiko.software` (default; only change if you self-host HIKO) |
+
+> **Merchant-only (entered in HIKO admin, not in the storefront):** Customer
+> Account API Client ID, Client Secret, and numeric Shop ID — see
+> [One-time merchant setup](#one-time-merchant-setup-hiko-admin) above.
 
 ---
 
@@ -147,19 +145,18 @@ the `VITE_*` env vars used by the local dev server (see [Run locally](#run-local
 The package ships a runnable demo (`index.html`) served by Vite:
 
 ```bash
-cp .env.example .env     # then fill in the values (see the table above)
+cp .env.example .env     # set VITE_SHOP and VITE_CONFIG_SERVER
 npm install
-npm run dev              # serves the demo (default http://localhost:5173)
+npm run dev              # serves the demo at http://localhost:5173
 ```
 
-`npm run dev` reads `.env` and mounts `<hiko-signin>` with your values; the
+`npm run dev` reads `.env` and mounts `<hiko-signin>` with your values. The
 **whoami** button calls `el._auth.query(...)` to show the logged-in customer.
 
-> **You can't sign in over plain `localhost`** — Shopify rejects `http://` and
-> `localhost` origins. To test the real login, expose the dev server over an
-> **HTTPS tunnel** (e.g. `ngrok http 5173`), open the **tunnel URL** (not
-> `localhost`), and add that tunnel URL to the store's **JavaScript Origins** and
-> **Redirect URIs** (Headless → Customer Account API → Application setup).
+**No tunnel needed.** Because all OAuth happens on the HIKO server, `localhost`
+works fine as the storefront origin. Just make sure the merchant has added
+`http://localhost:5173` to the **Allowed origins** in the HIKO admin (step 4
+of the one-time setup above).
 
 ---
 
@@ -167,28 +164,35 @@ npm run dev              # serves the demo (default http://localhost:5173)
 
 ```
 <hiko-signin> (this module)
-   │  loadConfig() → GET <config-server>/headless/config?shop=…   (providers/appearance)
-   │  click a provider → PKCE → redirect …
+   │  loadConfig() → GET <config-server>/headless/config?shop=…  (providers/appearance)
+   │  click a provider → POST <config-server>/headless/start     (broker begins OAuth)
    ▼
-Shopify Customer Account API (OIDC)  ──→  hosted login page
-   │  social buttons federate to HIKO's IdP, customer authenticates
+HIKO signin server (broker)
+   │  performs PKCE against Shopify Customer Account API (server-side)
+   │  Shopify → social login via HIKO's OIDC IdP → customer authenticates
+   │  callback → broker exchanges code → Shopify tokens (stay on server)
+   │  broker issues opaque fragment session token → redirect back to storefront
    ▼
-…redirect back → handleCallback() exchanges code → tokens (in-memory)
+storefront redirect-back page
+   │  auth.handleCallback() → stores opaque session token in-memory
    ▼
-el._auth.query(...) → Customer Account API GraphQL (direct, Authorization: <token>)
+el._auth.query(…)
+   │  → POST <config-server>/headless/customer  (BFF, Authorization: Bearer <session>)
+   │  broker proxies GraphQL to Customer Account API with its server-held token
+   ▼
+Customer Account API GraphQL response → back to browser
 ```
 
 ---
 
 ## Security
 
-The Customer Account API access token lives in the **browser** (in-memory by
-default; only the single-use PKCE verifier touches `sessionStorage`). This is the
-deliberate trade-off for a zero-backend module: it is more exposed to XSS than a
-server-side, httpOnly-cookie integration. Mitigations: short-lived access tokens
-with refresh rotation (built in), and a strict **Content-Security-Policy** on your
-storefront. If you require the strongest posture, use a server-side Customer
-Account API integration instead.
+Shopify Customer Account API tokens live on the **HIKO server** — the browser
+holds only an opaque session token (in-memory, never written to
+`localStorage` or cookies). This gives stronger XSS resistance than a
+browser-side PKCE integration. A strict **Content-Security-Policy** on your
+storefront is still recommended to protect the session token from script
+injection.
 
 ---
 

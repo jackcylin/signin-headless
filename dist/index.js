@@ -1,10 +1,8 @@
 import {
   createHeadlessAuth,
-  memoryTokenStore,
   registerHikoSignin
-} from "./chunk-ZPKEDNJK.js";
+} from "./chunk-MVRHY27I.js";
 export {
   createHeadlessAuth,
-  memoryTokenStore,
   registerHikoSignin
 };

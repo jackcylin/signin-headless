@@ -2,16 +2,14 @@
 <meta charset="utf-8" />
 <h1>HIKO headless sign-in demo</h1>
 <hiko-signin
-  shop="heavy-free.myshopify.com"
-  config-server="https://signin.hiko.software"
-  client-id="REPLACE_PUBLIC_CLIENT_ID"
-  shop-id="REPLACE_SHOP_ID"></hiko-signin>
+  shop="store-with-products.myshopify.com"
+  config-server="https://signin.hiko.software"></hiko-signin>
 <pre id="out"></pre>
 <script type="module">
   import "../dist/element.js";
   const el = document.querySelector("hiko-signin");
   el.addEventListener("hiko-signin:redirect", (e) => console.log("redirect", e.detail));
-  // After login, read customer data via the BFF-free direct API:
+  // After login, read customer data via the broker BFF:
   window.whoami = async () => {
     const data = await el._auth.query("{ customer { firstName emailAddress { emailAddress } } }");
     document.getElementById("out").textContent = JSON.stringify(data, null, 2);
