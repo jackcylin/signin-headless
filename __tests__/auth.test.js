@@ -56,3 +56,15 @@ it("query refreshes once on 401 then retries", async () => {
   expect(data.customer.firstName).toBe("Jo");
   expect(calls).toBe(2);
 });
+
+it("handleCallback rejects with state_mismatch when callback state does not match saved PKCE state", async () => {
+  // Save a PKCE entry with state "correct-state"
+  sessionStorage.setItem("hiko:pkce", JSON.stringify({ state: "correct-state", verifier: "ver" }));
+  const fetchImpl = fakeFetch([
+    ["openid-configuration", async () => new Response(JSON.stringify(discoveryDoc), { status: 200 })],
+  ]);
+  const auth = createHeadlessAuth({ shop: "s", clientId: "cid", shopId: "123", redirectUri: "https://shop/cb", fetchImpl });
+  // Inject a callback with a DIFFERENT state (CSRF attack scenario)
+  auth._getCallbackParams = () => ({ code: "c", state: "tampered-state" });
+  await expect(auth.handleCallback()).rejects.toThrow("state_mismatch");
+});
