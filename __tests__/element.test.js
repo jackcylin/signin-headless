@@ -48,3 +48,24 @@ it("auto-fetches per-shop config and renders the provider buttons", async () => 
     "https://cfg.test/headless/config?shop=s.myshopify.com",
   );
 });
+
+it("handles pending callback on element connect (redirect-back flow)", async () => {
+  // Set up a pending callback in the hash
+  const originalHash = window.location.hash;
+  window.location.hash = "#hiko_session=tok123";
+
+  globalThis.fetch = vi.fn(async () => new Response("{}", { status: 200 }));
+  registerHikoSignin();
+  const el = document.createElement("hiko-signin");
+  el.setAttribute("shop", "s.myshopify.com");
+  el.setAttribute("config-server", "https://cfg.test");
+  document.body.appendChild(el);
+
+  // The element should process the pending callback during connect without throwing
+  // and the auth should be logged in
+  await el.updateComplete;
+  expect(el._auth.isLoggedIn()).toBe(true);
+
+  // Clean up: restore original hash
+  window.location.hash = originalHash;
+});

@@ -10,7 +10,7 @@ export function registerHikoSignin() {
       configServer: el.getAttribute("config-server") || undefined,
     });
     // Complete a redirect-back on the page hosting the element.
-    if (auth.hasPendingCallback()) auth.handleCallback().catch(() => {});
+    if (auth.hasPendingCallback()) auth.handleCallback();
     el._auth = auth; // expose for app code: el._auth.query(...)
     // Headless always pulls per-shop config (providers/appearance) from the
     // server. Enable the widget's self-fetch so it calls the transport's
