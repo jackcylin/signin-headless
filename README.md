@@ -41,23 +41,31 @@ your store and this module renders its configured providers and runs the login.
    providers and the widget renders nothing.
 2. **New customer accounts** are enabled on the store (Settings → Customer
    accounts). This module does not work with legacy/classic accounts.
-3. The store's **Customer Account API is set up for a public, browser-based
-   client** — see [Required Shopify setup](#required-shopify-setup) below.
+3. The store has the **Headless sales channel** installed, with its **Customer
+   Account API set up for a public, browser-based client** — see
+   [Required Shopify setup](#required-shopify-setup) below.
 
 ---
 
 ## Required Shopify setup
 
-In Shopify admin → Settings → Customer accounts → your headless storefront's
-**Customer Account API** → *Application setup*:
+In Shopify admin → **Sales channels → Headless → your storefront → Customer
+Account API → *Application setup*** (install the **Headless** sales channel first
+if it isn't present). This screen — **not** Settings → Customer accounts — is where
+the Client ID / Shop ID live and where you configure:
 
-1. Enable a **public** OAuth client with the **PKCE** flow.
-2. Add every storefront origin (e.g. `https://shop.example.com`, and
-   `http://localhost:5173` for local dev) to **JavaScript Origins** — this enables
-   CORS on the token and GraphQL endpoints.
-3. Add your storefront callback URL(s) to **Redirect URIs** (the page that hosts
-   `<hiko-signin>` and completes the redirect).
-4. Confirm **new customer accounts** are enabled.
+1. A **public** OAuth client with the **PKCE** flow.
+2. **JavaScript Origins** — add every storefront origin (enables CORS on the token
+   and GraphQL endpoints).
+3. **Redirect/Callback URIs** — the page(s) that host `<hiko-signin>` and complete
+   the redirect.
+4. (and confirm **new customer accounts** are enabled, under Settings → Customer
+   accounts).
+
+> **HTTPS only — no `localhost`.** Shopify rejects `http://` and `localhost`
+> origins/redirect URIs. For local development, expose your dev server over an
+> **HTTPS tunnel** (e.g. `ngrok http 5173` or `cloudflared`) and register the
+> tunnel URL in both JavaScript Origins and Redirect URIs.
 
 You then supply `client-id` and `shop-id` to this module (both public — see
 [Getting the values](#getting-the-config-values)).
@@ -128,8 +136,8 @@ the `VITE_*` env vars used by the local dev server (see [Run locally](#run-local
 | Attribute / env | What it is | Where to get it |
 | --- | --- | --- |
 | `shop` / `VITE_SHOP` | Store domain `*.myshopify.com` | Shopify admin → Settings → Domains, or your admin URL (`admin.shopify.com/store/<handle>`) |
-| `client-id` / `VITE_CLIENT_ID` | Customer Account API **public** client id | Admin → Settings → Customer accounts → Customer Account API → *Application setup* (the same screen as the setup above) |
-| `shop-id` / `VITE_SHOP_ID` | **Numeric** shop id | Same screen — the auth URL reads `https://shopify.com/authentication/<SHOP_ID>`; copy the number. (Also the trailing digits of `gid://shopify/Shop/<id>`.) |
+| `client-id` / `VITE_CLIENT_ID` | Customer Account API **public** client id | Admin → **Sales channels → Headless → your storefront → Customer Account API → *Application setup*** (the same screen as the setup above) |
+| `shop-id` / `VITE_SHOP_ID` | **Numeric** shop id | Same Headless → Customer Account API screen (listed next to the Client ID). Also visible at Settings → Customer accounts → URL as `https://shopify.com/<SHOP_ID>/account`. |
 | `config-server` / `VITE_CONFIG_SERVER` | HIKO server serving per-shop config | `https://signin.hiko.software` (default; only change if you self-host HIKO) |
 
 ---
@@ -141,13 +149,17 @@ The package ships a runnable demo (`index.html`) served by Vite:
 ```bash
 cp .env.example .env     # then fill in the values (see the table above)
 npm install
-npm run dev              # → http://localhost:5173
+npm run dev              # serves the demo (default http://localhost:5173)
 ```
 
 `npm run dev` reads `.env` and mounts `<hiko-signin>` with your values; the
 **whoami** button calls `el._auth.query(...)` to show the logged-in customer.
-(Remember to add `http://localhost:5173` to the store's **JavaScript Origins** and
-**Redirect URIs** while developing.)
+
+> **You can't sign in over plain `localhost`** — Shopify rejects `http://` and
+> `localhost` origins. To test the real login, expose the dev server over an
+> **HTTPS tunnel** (e.g. `ngrok http 5173`), open the **tunnel URL** (not
+> `localhost`), and add that tunnel URL to the store's **JavaScript Origins** and
+> **Redirect URIs** (Headless → Customer Account API → Application setup).
 
 ---
 
