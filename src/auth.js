@@ -76,6 +76,16 @@ export function createHeadlessAuth({
       return res.json();
     },
 
+    async getToken() {
+      if (!token) return null;
+      const res = await fetchImpl(`${configServer}/headless/token`, {
+        headers: { "Authorization": `Bearer ${token}` },
+      });
+      if (res.status === 401) { token = null; emit(); throw new Error("unauthorized"); }
+      if (!res.ok) throw new Error(`token_failed:${res.status}`);
+      return res.json(); // { accessToken, expiresAt }
+    },
+
     async logout() {
       await fetchImpl(`${configServer}/headless/logout`, {
         method: "POST",

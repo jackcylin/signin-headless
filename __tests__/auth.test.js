@@ -196,3 +196,52 @@ it("isLoggedIn returns false before handleCallback", () => {
   const auth = createHeadlessAuth({ shop: SHOP, fetchImpl: vi.fn() });
   expect(auth.isLoggedIn()).toBe(false);
 });
+
+describe("getToken()", () => {
+  it("GETs /headless/token with Authorization header and returns {accessToken, expiresAt}", async () => {
+    const fetchImpl = makeFetch([
+      ["/headless/token", async (_url, init) => {
+        expect(init.headers["Authorization"]).toBe("Bearer tok123");
+        return new Response(JSON.stringify({ accessToken: "ca-tok-abc", expiresAt: "2026-12-31T00:00:00Z" }), { status: 200 });
+      }],
+    ]);
+    const auth = createHeadlessAuth({ shop: SHOP, configServer: CS, fetchImpl });
+    auth._getHash = () => "#hiko_session=tok123";
+    auth.handleCallback();
+
+    const result = await auth.getToken();
+
+    expect(result.accessToken).toBe("ca-tok-abc");
+    expect(result.expiresAt).toBe("2026-12-31T00:00:00Z");
+    const [url, init] = fetchImpl.mock.calls[0];
+    expect(url).toBe(CS + "/headless/token");
+    expect(init.headers["Authorization"]).toBe("Bearer tok123");
+  });
+
+  it("on 401 clears token, emits, and throws 'unauthorized'", async () => {
+    const fetchImpl = makeFetch([
+      ["/headless/token", async () => new Response("{}", { status: 401 })],
+    ]);
+    const auth = createHeadlessAuth({ shop: SHOP, configServer: CS, fetchImpl });
+    auth._getHash = () => "#hiko_session=tok123";
+    auth.handleCallback();
+
+    const cb = vi.fn();
+    auth.onChange(cb);
+
+    await expect(auth.getToken()).rejects.toThrow("unauthorized");
+    expect(auth.isLoggedIn()).toBe(false);
+    expect(cb).toHaveBeenCalledOnce();
+  });
+
+  it("when not logged in returns null", async () => {
+    const fetchImpl = vi.fn();
+    const auth = createHeadlessAuth({ shop: SHOP, configServer: CS, fetchImpl });
+    // No handleCallback — token is null
+
+    const result = await auth.getToken();
+
+    expect(result).toBeNull();
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+});
