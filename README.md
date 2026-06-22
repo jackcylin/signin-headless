@@ -1,14 +1,57 @@
 # @hiko/signin-headless
 
-Headless social login for Shopify **new customer accounts** — drops the same
-`<hiko-signin>` widget your theme storefront uses into any headless storefront
-(React, Vue, Hydrogen, plain HTML…).
+Add Google, Facebook, and other social sign-in to a **headless** Shopify
+storefront (React, Vue, Hydrogen, or plain HTML) with a single web component and
+**no backend of your own**. `@hiko/signin-headless` drops the same
+`<hiko-signin>` widget your Shopify theme already uses into any headless
+storefront: it renders the providers you configured in your HIKO admin, runs the
+entire login through the hosted HIKO broker, and lets you read the signed-in
+customer — all from the browser, with the Shopify OAuth tokens kept on the
+server.
 
-It is the headless companion to **HIKO Social Login Plus** — install that app on
-your store and this module renders its configured providers and runs the login.
+It is the headless companion to **HIKO Social Login Plus**. Install that app,
+configure your providers in its admin, and this module consumes that setup — you
+write no OAuth code, run no server, and store no secrets.
 
 - App Store: **[HIKO Social Login Plus](https://apps.shopify.com/hiko-ultimate-social-login)** (HIKO Software)
-- Provider setup lives in the HIKO admin; this module only consumes it.
+- Works from `localhost` with no tunnel. New customer accounts only.
+
+---
+
+## Quick start
+
+```bash
+npm install @hiko/signin-headless
+```
+
+```html
+<!-- 1. Drop the component in. It renders the social buttons you configured. -->
+<hiko-signin shop="your-shop.myshopify.com"></hiko-signin>
+
+<script type="module">
+  // 2. One import registers <hiko-signin>. No other setup.
+  import "@hiko/signin-headless";
+
+  const el = document.querySelector("hiko-signin");
+
+  // 3. The customer is signed in when this fires (after the login redirect).
+  el.addEventListener("hiko:login", async () => {
+    const { customer } = await el.query(
+      "{ customer { firstName lastName emailAddress { emailAddress } } }",
+    );
+    console.log("Signed in:", customer.firstName, customer.emailAddress.emailAddress);
+  });
+
+  el.addEventListener("hiko:logout", () => console.log("Signed out"));
+</script>
+```
+
+That is the whole integration: the component renders your providers, redirects
+through the broker to sign the customer in, returns to your page, and
+`el.query(...)` reads customer data through the broker — no tokens, `shopId`, or
+CORS setup on your side. `config-server` defaults to `https://signin.hiko.software`;
+set it only if you self-host HIKO. See [Usage](#usage) for the full element API
+(`el.login` / `el.logout` / `el.getToken` / `el.isLoggedIn`).
 
 ---
 
