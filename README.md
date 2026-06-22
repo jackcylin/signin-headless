@@ -141,6 +141,26 @@ custom client id/secret if you entered one, otherwise HIKO's shared app.** If
 social login already works on your theme storefront, it works in headless with
 no extra provider configuration.
 
+### Social-provider redirect URIs
+
+When you register your **own** social OAuth app, the redirect URI you add in that
+provider's console is **not your storefront** — it points back at HIKO (directly
+or via Shopify's App Proxy). The HIKO admin shows the exact value per provider;
+it is one of:
+
+- **Default (most providers / HIKO's shared app):** the HIKO server itself —
+  `https://signin.hiko.software/oidc/<provider>/callback`.
+- **Your own Google client:** Google requires the redirect on *your* domain (for
+  the branded consent screen), so HIKO uses the **Shopify App Proxy** —
+  `https://<your-shop-domain>/apps/signin/google/callback`. Google redirects
+  there and Shopify transparently forwards the request to the HIKO server.
+
+Either way the social provider redirects to HIKO, never to the headless
+storefront — only the **final** hop, after authentication succeeds, returns to
+your page through the broker. This is the same redirect setup your theme
+storefront already uses, so **headless needs nothing extra here**: register
+whatever value the HIKO admin shows for each provider.
+
 ---
 
 ## Install
