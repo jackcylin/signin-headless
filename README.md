@@ -20,11 +20,14 @@ your store and this module renders its configured providers and runs the login.
   *does* exist and is required: it is the **HIKO broker** (`signin.hiko.software`,
   operated by HIKO), not something you stand up. Drop in the web component and
   you are done.
-- **Broker model — tokens never leave the server.** Login and token exchange run
-  on the **HIKO server (broker)**; the browser never performs OAuth/PKCE and
-  never holds a Shopify Customer Account API token. After authentication the
-  browser holds only an **opaque session token** (in-memory), which it sends to
-  the broker's BFF for customer GraphQL queries.
+- **Broker model — tokens stay server-side by default.** Login and token
+  exchange run on the **HIKO server (broker)**; the browser never performs
+  OAuth/PKCE. After authentication the browser holds only an **opaque session
+  token** (in-memory) and reads customer data through the broker's BFF
+  (`el.query`) — so the Shopify Customer Account API token need never touch the
+  browser. If you *do* need that token client-side (e.g. to call the Customer
+  Account API directly), `el.getToken()` fetches it from the broker on demand —
+  an explicit opt-in that brings the access token into the browser.
 - **Works from `localhost` with no tunnel.** Because the broker handles all OAuth
   redirects, the storefront origin never needs to be registered as a Shopify
   redirect URI. Merchants add `http://localhost:5173` (or any origin) to the
@@ -204,12 +207,18 @@ Customer Account API GraphQL response → back to browser
 
 ## Security
 
-Shopify Customer Account API tokens live on the **HIKO server** — the browser
-holds only an opaque session token (in-memory, never written to
-`localStorage` or cookies). This gives stronger XSS resistance than a
-browser-side PKCE integration. A strict **Content-Security-Policy** on your
-storefront is still recommended to protect the session token from script
-injection.
+By default, Shopify Customer Account API tokens live on the **HIKO server** —
+the browser holds only an opaque session token (in-memory, never written to
+`localStorage` or cookies) and reads customer data through the broker's BFF
+(`el.query`). This gives stronger XSS resistance than a browser-side PKCE
+integration.
+
+`el.getToken()` is an explicit opt-out of that isolation: it returns the live
+Customer Account API access token to the browser so you can call the Customer
+Account API directly. Use it only when you need direct API access — while the
+browser holds that token it carries the same XSS exposure as any browser-side
+token. A strict **Content-Security-Policy** on your storefront is recommended
+either way (it also protects the session token from script injection).
 
 ---
 
