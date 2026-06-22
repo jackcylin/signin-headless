@@ -8,15 +8,31 @@ export function registerHikoSignin() {
     const auth = createHeadlessAuth({
       shop: el.getAttribute("shop"),
       configServer: el.getAttribute("config-server") || undefined,
+      mode: el.getAttribute("mode") || undefined,
     });
+
+    // Popup-relay case: this element instance is running INSIDE the OAuth popup.
+    // Relay the session back to the opener then close — do not run the normal flow.
+    if (auth.isPopupCallback()) {
+      auth.completePopupCallback();
+      return createHeadlessTransport(auth);
+    }
 
     // Wire auth state changes to DOM events BEFORE handling any pending callback,
     // so the hiko:login event fires if handleCallback() sets a token below.
     auth.onChange((a) => {
       if (a.isLoggedIn()) {
-        el.dispatchEvent(new CustomEvent("hiko:login", { bubbles: true, composed: true }));
+        el.dispatchEvent(
+          new CustomEvent("hiko:login", {
+            bubbles: true,
+            composed: true,
+            detail: { customer: auth.getLastCustomer?.() ?? null },
+          }),
+        );
       } else {
-        el.dispatchEvent(new CustomEvent("hiko:logout", { bubbles: true, composed: true }));
+        el.dispatchEvent(
+          new CustomEvent("hiko:logout", { bubbles: true, composed: true }),
+        );
       }
     });
 

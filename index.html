@@ -7,15 +7,19 @@
   const el = document.createElement("hiko-signin");
   el.setAttribute("shop", import.meta.env.VITE_SHOP);
   el.setAttribute("config-server", import.meta.env.VITE_CONFIG_SERVER || "https://signin.hiko.software");
+  // Enable popup mode: opens a popup for the OAuth handshake and self-closes it,
+  // handing the session back to this page via postMessage.
+  el.setAttribute("mode", "popup");
   document.getElementById("mount").appendChild(el);
 
   const out = document.getElementById("out");
-  async function render() {
-    if (!el._auth?.isLoggedIn?.()) { out.textContent = "(not signed in — click a provider above)"; return; }
+  async function render(customer) {
+    if (!el.isLoggedIn?.()) { out.textContent = "(not signed in — click a provider above)"; return; }
     try {
-      const data = await el._auth.query("{ customer { firstName lastName emailAddress { emailAddress } } }");
-      const c = data?.customer ?? {};
-      const tok = await el._auth.getToken();
+      // In popup mode the hiko:login event supplies customer directly in event.detail.
+      // Fall back to an explicit query for redirect mode or if detail is absent.
+      const c = customer ?? (await el.query("{ customer { firstName lastName emailAddress { emailAddress } } }"))?.customer ?? {};
+      const tok = await el.getToken();
       out.textContent =
         "Email: " + (c.emailAddress?.emailAddress ?? "—") + "\n" +
         "Name:  " + [c.firstName, c.lastName].filter(Boolean).join(" ") + "\n" +
@@ -23,9 +27,13 @@
         "(expires " + (tok?.expiresAt ? new Date(tok.expiresAt).toISOString() : "—") + ")";
     } catch (e) { out.textContent = "Error: " + e.message; }
   }
-  // Wait a microtask in case _auth is assigned asynchronously
-  queueMicrotask(() => {
-    el._auth?.onChange?.(render);
-    render();
+
+  el.addEventListener("hiko:login", async (e) => {
+    // Popup mode: customer is available immediately in event.detail
+    await render(e.detail?.customer ?? null);
   });
+  el.addEventListener("hiko:logout", () => render(null));
+
+  // Check if already signed in on page load (e.g. after a redirect-back)
+  queueMicrotask(() => render(null));
 </script>

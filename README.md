@@ -172,10 +172,49 @@ The element exposes the full auth API directly — no `el._auth` indirection nee
 
 Events dispatched on the element (`bubbles: true, composed: true`):
 
-| Event | When |
-| --- | --- |
-| `hiko:login` | Callback processed / token becomes present |
-| `hiko:logout` | Token cleared (logout or 401) |
+| Event | When | `event.detail` |
+| --- | --- | --- |
+| `hiko:login` | Callback processed / token becomes present | `{ customer }` (non-null in popup mode; `null` in redirect mode) |
+| `hiko:logout` | Token cleared (logout or 401) | — |
+
+### Popup mode
+
+Set `mode="popup"` on the element to open a 480 × 720 popup window for the
+OAuth handshake instead of redirecting the current page. The popup runs the
+same HIKO broker flow and self-closes once the session is established, handing
+the result back to the opener via `postMessage`.
+
+```html
+<hiko-signin shop="your-shop.myshopify.com" mode="popup"></hiko-signin>
+
+<script type="module">
+  import "@hiko/signin-headless";
+
+  const el = document.querySelector("hiko-signin");
+
+  el.addEventListener("hiko:login", (e) => {
+    // In popup mode, customer data arrives immediately in event.detail —
+    // no extra el.query() call needed.
+    const customer = e.detail?.customer;
+    console.log("Signed in:", customer?.firstName);
+  });
+</script>
+```
+
+Key behaviour:
+
+- **Opt-in, backward-compatible.** The default (no `mode` attribute or
+  `mode="redirect"`) is unchanged: a full-page redirect to the broker.
+- **Graceful fallback.** If the browser blocks the popup (e.g. the call did
+  not originate from a user gesture), the widget falls back to the standard
+  full-page redirect automatically.
+- **Secure relay.** The session token is passed from the popup to the opener
+  via `postMessage` with `targetOrigin` set to `location.origin` (never `"*"`).
+  The opener accepts a message only when all three hold: the origin matches, the
+  source is the exact popup reference, and `data.type === "hiko:session"`.
+- **Customer included.** `hiko:login` fires with `event.detail.customer`
+  pre-populated (firstName, lastName, email) so you do not need a follow-up
+  `el.query()` call in popup mode.
 
 > **Note:** `createHeadlessAuth` is an internal module — it is no longer exported
 > from the public entry point. The `<hiko-signin>` element is the sole public

@@ -245,3 +245,229 @@ describe("getToken()", () => {
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 });
+
+// ─── Popup login mode ─────────────────────────────────────────────────────────
+
+describe("popup mode — login()", () => {
+  it("calls _openPopup with a /headless/start URL containing shop, return, and provider", () => {
+    const auth = createHeadlessAuth({
+      shop: SHOP,
+      configServer: CS,
+      returnUrl: "https://mystore.com/account",
+      fetchImpl: vi.fn(),
+      mode: "popup",
+    });
+
+    const openedUrls = [];
+    // Simulate popup that never closes
+    const fakePopup = { closed: false };
+    auth._openPopup = (url) => { openedUrls.push(url); return fakePopup; };
+    auth._navigate = vi.fn();
+
+    auth.login("google");
+
+    expect(openedUrls).toHaveLength(1);
+    const url = new URL(openedUrls[0]);
+    expect(url.origin + url.pathname).toBe(CS + "/headless/start");
+    expect(url.searchParams.get("shop")).toBe(SHOP);
+    expect(url.searchParams.get("return")).toBe("https://mystore.com/account");
+    expect(url.searchParams.get("provider")).toBe("google");
+    // Should NOT have navigated the current page
+    expect(auth._navigate).not.toHaveBeenCalled();
+  });
+
+  it("ignores messages with wrong origin (forged origin)", async () => {
+    const auth = createHeadlessAuth({
+      shop: SHOP,
+      configServer: CS,
+      returnUrl: "https://mystore.com/account",
+      fetchImpl: vi.fn(),
+      mode: "popup",
+    });
+    const fakePopup = { closed: false };
+    auth._openPopup = () => fakePopup;
+    auth._navigate = vi.fn();
+
+    auth.login("google");
+
+    // Simulate a message from a WRONG origin
+    const badEvent = new MessageEvent("message", {
+      data: { type: "hiko:session", session: "evil-tok", customer: { firstName: "Hacker" } },
+      origin: "https://evil.com",
+      source: fakePopup,
+    });
+    window.dispatchEvent(badEvent);
+
+    expect(auth.isLoggedIn()).toBe(false);
+    expect(auth.getLastCustomer()).toBeNull();
+  });
+
+  it("ignores messages with wrong source (not the popup)", async () => {
+    const auth = createHeadlessAuth({
+      shop: SHOP,
+      configServer: CS,
+      returnUrl: "https://mystore.com/account",
+      fetchImpl: vi.fn(),
+      mode: "popup",
+    });
+    const fakePopup = { closed: false };
+    auth._openPopup = () => fakePopup;
+    auth._navigate = vi.fn();
+
+    auth.login("google");
+
+    // Message from correct origin but different source (wrong window)
+    const badEvent = new MessageEvent("message", {
+      data: { type: "hiko:session", session: "evil-tok", customer: {} },
+      origin: location.origin,
+      source: window, // not fakePopup
+    });
+    window.dispatchEvent(badEvent);
+
+    expect(auth.isLoggedIn()).toBe(false);
+  });
+
+  it("accepts correct hiko:session message → isLoggedIn and getLastCustomer populated", async () => {
+    const auth = createHeadlessAuth({
+      shop: SHOP,
+      configServer: CS,
+      returnUrl: "https://mystore.com/account",
+      fetchImpl: vi.fn(),
+      mode: "popup",
+    });
+    const fakePopup = { closed: false };
+    auth._openPopup = () => fakePopup;
+    auth._navigate = vi.fn();
+
+    const loginFired = [];
+    auth.onChange((a) => { if (a.isLoggedIn()) loginFired.push(true); });
+
+    auth.login("google");
+
+    const okEvent = new MessageEvent("message", {
+      data: { type: "hiko:session", session: "tok-ok", customer: { firstName: "Jo", emailAddress: { emailAddress: "jo@example.com" } } },
+      origin: location.origin,
+      source: fakePopup,
+    });
+    window.dispatchEvent(okEvent);
+
+    expect(auth.isLoggedIn()).toBe(true);
+    expect(auth.getLastCustomer()).toMatchObject({ firstName: "Jo" });
+    expect(loginFired).toHaveLength(1);
+  });
+
+  it("falls back to _navigate when _openPopup returns null (popup blocked)", () => {
+    const auth = createHeadlessAuth({
+      shop: SHOP,
+      configServer: CS,
+      returnUrl: "https://mystore.com/account",
+      fetchImpl: vi.fn(),
+      mode: "popup",
+    });
+    auth._openPopup = () => null; // blocked
+    const navigated = [];
+    auth._navigate = (u) => navigated.push(u);
+
+    auth.login("google");
+
+    expect(navigated).toHaveLength(1);
+    const url = new URL(navigated[0]);
+    expect(url.pathname).toBe("/headless/start");
+  });
+
+  it("default mode (no mode param) still uses _navigate (redirect unchanged)", () => {
+    const auth = createHeadlessAuth({
+      shop: SHOP,
+      configServer: CS,
+      returnUrl: "https://mystore.com/account",
+      fetchImpl: vi.fn(),
+      // no mode
+    });
+    const openedUrls = [];
+    auth._openPopup = (u) => { openedUrls.push(u); return { closed: false }; };
+    const navigated = [];
+    auth._navigate = (u) => navigated.push(u);
+
+    auth.login("google");
+
+    expect(openedUrls).toHaveLength(0);
+    expect(navigated).toHaveLength(1);
+  });
+});
+
+describe("popup mode — isPopupCallback() and completePopupCallback()", () => {
+  it("isPopupCallback() returns true when _isPopup is true and hash has hiko_session", () => {
+    const auth = createHeadlessAuth({ shop: SHOP, configServer: CS, fetchImpl: vi.fn(), mode: "popup" });
+    auth._isPopup = () => true;
+    auth._getHash = () => "#hiko_session=tok123";
+
+    expect(auth.isPopupCallback()).toBe(true);
+  });
+
+  it("isPopupCallback() returns false when not in popup window", () => {
+    const auth = createHeadlessAuth({ shop: SHOP, configServer: CS, fetchImpl: vi.fn(), mode: "popup" });
+    auth._isPopup = () => false;
+    auth._getHash = () => "#hiko_session=tok123";
+
+    expect(auth.isPopupCallback()).toBe(false);
+  });
+
+  it("isPopupCallback() returns false when no pending callback hash", () => {
+    const auth = createHeadlessAuth({ shop: SHOP, configServer: CS, fetchImpl: vi.fn(), mode: "popup" });
+    auth._isPopup = () => true;
+    auth._getHash = () => "";
+
+    expect(auth.isPopupCallback()).toBe(false);
+  });
+
+  it("completePopupCallback() with valid session: posts {type:hiko:session} to opener and closes self", async () => {
+    const fetchImpl = makeFetch([
+      ["/headless/token", async () =>
+        new Response(JSON.stringify({ accessToken: "ca-tok", expiresAt: "2027-01-01T00:00:00Z" }), { status: 200 })],
+      ["/headless/customer", async () =>
+        new Response(JSON.stringify({ data: { customer: { firstName: "Sam" } } }), { status: 200 })],
+    ]);
+
+    const auth = createHeadlessAuth({ shop: SHOP, configServer: CS, fetchImpl, mode: "popup" });
+    auth._isPopup = () => true;
+    auth._getHash = () => "#hiko_session=popup-tok";
+    const postedMessages = [];
+    auth._postToOpener = (msg) => postedMessages.push(msg);
+    const closedSelf = [];
+    auth._closeSelf = () => closedSelf.push(true);
+
+    await auth.completePopupCallback();
+
+    expect(postedMessages).toHaveLength(1);
+    const msg = postedMessages[0];
+    expect(msg.type).toBe("hiko:session");
+    expect(msg.session).toBe("popup-tok");
+    expect(msg.accessToken).toBe("ca-tok");
+    expect(msg.customer).toMatchObject({ firstName: "Sam" });
+    expect(closedSelf).toHaveLength(1);
+  });
+
+  it("completePopupCallback() when handleCallback fails: posts hiko:error and closes self", async () => {
+    const auth = createHeadlessAuth({ shop: SHOP, configServer: CS, fetchImpl: vi.fn(), mode: "popup" });
+    auth._isPopup = () => true;
+    auth._getHash = () => ""; // no hiko_session → handleCallback returns false
+
+    const postedMessages = [];
+    auth._postToOpener = (msg) => postedMessages.push(msg);
+    const closedSelf = [];
+    auth._closeSelf = () => closedSelf.push(true);
+
+    await auth.completePopupCallback();
+
+    expect(postedMessages).toHaveLength(1);
+    expect(postedMessages[0].type).toBe("hiko:error");
+    expect(closedSelf).toHaveLength(1);
+  });
+});
+
+describe("getLastCustomer()", () => {
+  it("returns null before any popup login", () => {
+    const auth = createHeadlessAuth({ shop: SHOP, fetchImpl: vi.fn() });
+    expect(auth.getLastCustomer()).toBeNull();
+  });
+});
