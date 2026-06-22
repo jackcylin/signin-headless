@@ -1,23 +1,31 @@
 <!doctype html><meta charset="utf-8" />
 <h1>HIKO headless sign-in (dev)</h1>
 <div id="mount"></div>
+<button id="logout" hidden>Sign out</button>
 <pre id="out"></pre>
 <script type="module">
   import "./src/element.js";
+
   const el = document.createElement("hiko-signin");
   el.setAttribute("shop", import.meta.env.VITE_SHOP);
   el.setAttribute("config-server", import.meta.env.VITE_CONFIG_SERVER || "https://signin.hiko.software");
-  // Enable popup mode: opens a popup for the OAuth handshake and self-closes it,
+  // Popup mode: opens a popup for the OAuth handshake and self-closes it,
   // handing the session back to this page via postMessage.
   el.setAttribute("mode", "popup");
   document.getElementById("mount").appendChild(el);
 
   const out = document.getElementById("out");
-  async function render(customer) {
-    if (!el.isLoggedIn?.()) { out.textContent = "(not signed in — click a provider above)"; return; }
+  const logoutBtn = document.getElementById("logout");
+
+  // Hide the sign-in widget once signed in; show it again after logout.
+  function reflectAuth(signedIn) {
+    el.style.display = signedIn ? "none" : "";
+    logoutBtn.hidden = !signedIn;
+  }
+
+  async function showCustomer(customer) {
     try {
-      // In popup mode the hiko:login event supplies customer directly in event.detail.
-      // Fall back to an explicit query for redirect mode or if detail is absent.
+      // In popup mode hiko:login carries the customer in event.detail; otherwise query it.
       const c = customer ?? (await el.query("{ customer { firstName lastName emailAddress { emailAddress } } }"))?.customer ?? {};
       const tok = await el.getToken();
       out.textContent =
@@ -29,11 +37,25 @@
   }
 
   el.addEventListener("hiko:login", async (e) => {
-    // Popup mode: customer is available immediately in event.detail
-    await render(e.detail?.customer ?? null);
+    reflectAuth(true);                       // access token obtained → hide the widget
+    await showCustomer(e.detail?.customer ?? null);
   });
-  el.addEventListener("hiko:logout", () => render(null));
 
-  // Check if already signed in on page load (e.g. after a redirect-back)
-  queueMicrotask(() => render(null));
+  el.addEventListener("hiko:logout", () => {
+    // Housekeeping: clear the customer panel and bring the widget back.
+    out.textContent = "(signed out — click a provider above)";
+    reflectAuth(false);
+  });
+
+  logoutBtn.addEventListener("click", async () => {
+    logoutBtn.disabled = true;
+    // el.logout() deletes the broker session, clears the in-memory token,
+    // and fires hiko:logout (handled above). That is the housekeeping.
+    try { await el.logout(); } finally { logoutBtn.disabled = false; }
+  });
+
+  // Initial state on a fresh load (in-memory session → signed out).
+  const signedIn = el.isLoggedIn?.() ?? false;
+  reflectAuth(signedIn);
+  if (!signedIn) out.textContent = "(not signed in — click a provider above)";
 </script>
