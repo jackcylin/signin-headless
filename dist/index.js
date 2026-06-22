@@ -1,8 +1,6 @@
 import {
-  createHeadlessAuth,
   registerHikoSignin
-} from "./chunk-MVRHY27I.js";
+} from "./chunk-WS5L36MO.js";
 export {
-  createHeadlessAuth,
   registerHikoSignin
 };

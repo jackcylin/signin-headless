@@ -1,17 +1,26 @@
 <!doctype html>
 <meta charset="utf-8" />
 <h1>HIKO headless sign-in demo</h1>
-<hiko-signin
-  shop="store-with-products.myshopify.com"
-  config-server="https://signin.hiko.software"></hiko-signin>
+<div id="mount"></div>
 <pre id="out"></pre>
 <script type="module">
-  import "../dist/element.js";
-  const el = document.querySelector("hiko-signin");
-  el.addEventListener("hiko-signin:redirect", (e) => console.log("redirect", e.detail));
-  // After login, read customer data via the broker BFF:
-  window.whoami = async () => {
-    const data = await el._auth.query("{ customer { firstName emailAddress { emailAddress } } }");
-    document.getElementById("out").textContent = JSON.stringify(data, null, 2);
-  };
+  import "./src/element.js";
+  const el = document.createElement("hiko-signin");
+  el.setAttribute("shop", import.meta.env.VITE_SHOP || "store-with-products.myshopify.com");
+  el.setAttribute("config-server", import.meta.env.VITE_CONFIG_SERVER || "https://signin.hiko.software");
+  document.getElementById("mount").appendChild(el);
+
+  const out = document.getElementById("out");
+
+  async function render() {
+    if (!el.isLoggedIn()) { out.textContent = "(not signed in)"; return; }
+    const data = await el.query("{ customer { firstName lastName emailAddress { emailAddress } } }");
+    const c = data?.customer ?? {};
+    const tok = await el.getToken();
+    out.textContent = "Email: "+(c.emailAddress?.emailAddress??"—")+"\nName: "+[c.firstName,c.lastName].filter(Boolean).join(" ")+"\nToken: "+(tok?.accessToken??"—");
+  }
+
+  el.addEventListener("hiko:login", render);
+  el.addEventListener("hiko:logout", render);
+  render();
 </script>

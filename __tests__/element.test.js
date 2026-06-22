@@ -62,10 +62,58 @@ it("handles pending callback on element connect (redirect-back flow)", async () 
   document.body.appendChild(el);
 
   // The element should process the pending callback during connect without throwing
-  // and the auth should be logged in
+  // and the element's isLoggedIn() method (not el._auth) should return true
   await el.updateComplete;
-  expect(el._auth.isLoggedIn()).toBe(true);
+  expect(el.isLoggedIn()).toBe(true);
 
   // Clean up: restore original hash
   window.location.hash = originalHash;
+});
+
+it("element exposes el.login, el.logout, el.query, el.getToken, el.isLoggedIn as functions", async () => {
+  globalThis.fetch = vi.fn(async () => new Response("{}", { status: 200 }));
+  registerHikoSignin();
+  const el = document.createElement("hiko-signin");
+  el.setAttribute("shop", "s.myshopify.com");
+  document.body.appendChild(el);
+  await el.updateComplete;
+
+  expect(typeof el.login).toBe("function");
+  expect(typeof el.logout).toBe("function");
+  expect(typeof el.query).toBe("function");
+  expect(typeof el.getToken).toBe("function");
+  expect(typeof el.isLoggedIn).toBe("function");
+});
+
+it("dispatches hiko:login event when callback is processed (token becomes present)", async () => {
+  const originalHash = window.location.hash;
+  window.location.hash = "#hiko_session=tok456";
+
+  globalThis.fetch = vi.fn(async () => new Response("{}", { status: 200 }));
+  registerHikoSignin();
+  const el = document.createElement("hiko-signin");
+  el.setAttribute("shop", "s.myshopify.com");
+
+  const loginEvents = [];
+  el.addEventListener("hiko:login", (e) => loginEvents.push(e));
+  document.body.appendChild(el);
+
+  await el.updateComplete;
+
+  expect(loginEvents.length).toBeGreaterThan(0);
+  expect(loginEvents[0].bubbles).toBe(true);
+  expect(loginEvents[0].composed).toBe(true);
+
+  window.location.hash = originalHash;
+});
+
+it("el.getSession delegates to auth.session()", async () => {
+  globalThis.fetch = vi.fn(async () => new Response("{}", { status: 200 }));
+  registerHikoSignin();
+  const el = document.createElement("hiko-signin");
+  el.setAttribute("shop", "s.myshopify.com");
+  document.body.appendChild(el);
+  await el.updateComplete;
+
+  expect(typeof el.getSession).toBe("function");
 });

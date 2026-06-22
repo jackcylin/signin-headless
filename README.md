@@ -83,42 +83,52 @@ npm install @hiko/signin-headless
 ### As a web component (any framework / plain HTML)
 
 ```html
-<hiko-signin
-  shop="your-shop.myshopify.com"
-  config-server="https://signin.hiko.software">
-</hiko-signin>
+<div id="mount"></div>
 
 <script type="module">
-  import "@hiko/signin-headless/element"; // registers <hiko-signin>
+  import "@hiko/signin-headless"; // registers <hiko-signin> and auto-calls registerHikoSignin()
+  // — or —
+  import "@hiko/signin-headless/element";
+
+  const el = document.createElement("hiko-signin");
+  el.setAttribute("shop", "your-shop.myshopify.com");
+  el.setAttribute("config-server", "https://signin.hiko.software"); // optional, this is the default
+  document.getElementById("mount").appendChild(el);
+
+  // React to auth state changes via DOM events:
+  el.addEventListener("hiko:login", async () => {
+    const data = await el.query("{ customer { firstName emailAddress { emailAddress } } }");
+    console.log(data.customer);
+  });
+  el.addEventListener("hiko:logout", () => {
+    console.log("signed out");
+  });
 </script>
 ```
 
-After login, query customer data through the broker BFF:
+The element exposes the full auth API directly — no `el._auth` indirection needed:
 
-```js
-const el = document.querySelector("hiko-signin");
-const data = await el._auth.query("{ customer { firstName emailAddress { emailAddress } } }");
-```
+| Method | Description |
+| --- | --- |
+| `el.isLoggedIn()` | Returns `true` when a session token is held in-memory |
+| `el.login(provider?)` | Redirects to the HIKO broker for social or email-OTP login |
+| `el.logout()` | Ends the session on the broker and clears the in-memory token |
+| `el.query(graphql, vars?)` | Runs a Customer Account API GraphQL query through the broker BFF |
+| `el.getToken()` | Returns `{ accessToken, expiresAt }` from the broker (server-held Shopify token) |
+| `el.getSession()` | Returns the current broker session payload |
 
-### Programmatic SDK
+Events dispatched on the element (`bubbles: true, composed: true`):
 
-```js
-import { createHeadlessAuth } from "@hiko/signin-headless";
+| Event | When |
+| --- | --- |
+| `hiko:login` | Callback processed / token becomes present |
+| `hiko:logout` | Token cleared (logout or 401) |
 
-const auth = createHeadlessAuth({
-  shop: "your-shop.myshopify.com",
-  configServer: "https://signin.hiko.software", // optional, this is the default
-});
+> **Note:** `createHeadlessAuth` is an internal module — it is no longer exported
+> from the public entry point. The `<hiko-signin>` element is the sole public
+> surface. Use `el.query()`, `el.getToken()`, etc. directly on the element.
 
-await auth.loadConfig();          // providers + appearance from the HIKO server
-auth.login("google");             // → redirects to the HIKO broker → Shopify
-await auth.handleCallback();       // on the redirect-back page: exchanges broker code
-                                   // for an opaque session token (in-memory)
-await auth.query("{ customer { firstName } }"); // BFF: broker proxies to Customer Account API
-await auth.logout();
-```
-
-Exports: `createHeadlessAuth`, `registerHikoSignin`, and the side-effect
+Exports: `registerHikoSignin` (named), and the side-effect
 `@hiko/signin-headless/element` entry (registers `<hiko-signin>`).
 
 ---
@@ -150,8 +160,9 @@ npm install
 npm run dev              # serves the demo at http://localhost:5173
 ```
 
-`npm run dev` reads `.env` and mounts `<hiko-signin>` with your values. The
-**whoami** button calls `el._auth.query(...)` to show the logged-in customer.
+`npm run dev` reads `.env` and mounts `<hiko-signin>` with your values. Once
+signed in, the demo shows the logged-in customer via `el.query(...)` — no
+`el._auth` indirection.
 
 **No tunnel needed.** Because all OAuth happens on the HIKO server, `localhost`
 works fine as the storefront origin. Just make sure the merchant has added
@@ -176,7 +187,7 @@ HIKO signin server (broker)
 storefront redirect-back page
    │  auth.handleCallback() → stores opaque session token in-memory
    ▼
-el._auth.query(…)
+el.query(…)
    │  → POST <config-server>/headless/customer  (BFF, Authorization: Bearer <session>)
    │  broker proxies GraphQL to Customer Account API with its server-held token
    ▼
