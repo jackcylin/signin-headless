@@ -14,6 +14,12 @@ your store and this module renders its configured providers and runs the login.
 
 ## Design principles
 
+- **No backend for you to build or run.** Your storefront loads the
+  `<hiko-signin>` web component and points it at the hosted HIKO server — you
+  write no server code, run no OAuth backend, and store no secrets. A backend
+  *does* exist and is required: it is the **HIKO broker** (`signin.hiko.software`,
+  operated by HIKO), not something you stand up. Drop in the web component and
+  you are done.
 - **Broker model — tokens never leave the server.** Login and token exchange run
   on the **HIKO server (broker)**; the browser never performs OAuth/PKCE and
   never holds a Shopify Customer Account API token. After authentication the
