@@ -20,14 +20,15 @@ your store and this module renders its configured providers and runs the login.
   *does* exist and is required: it is the **HIKO broker** (`signin.hiko.software`,
   operated by HIKO), not something you stand up. Drop in the web component and
   you are done.
-- **Broker model — tokens stay server-side by default.** Login and token
-  exchange run on the **HIKO server (broker)**; the browser never performs
-  OAuth/PKCE. After authentication the browser holds only an **opaque session
-  token** (in-memory) and reads customer data through the broker's BFF
-  (`el.query`) — so the Shopify Customer Account API token need never touch the
-  browser. If you *do* need that token client-side (e.g. to call the Customer
-  Account API directly), `el.getToken()` fetches it from the broker on demand —
-  an explicit opt-in that brings the access token into the browser.
+- **Broker model — the broker holds the Shopify tokens.** Login and token
+  exchange run on the **HIKO server (broker)**, which holds and refreshes the
+  Shopify Customer Account API tokens; the browser never performs OAuth/PKCE.
+  After authentication the browser holds only an **opaque session token**
+  (in-memory) and reads customer data through the broker's BFF (`el.query`) — so
+  the Shopify token need never touch the browser. If you *do* need it
+  client-side (e.g. to call the Customer Account API directly), `el.getToken()`
+  fetches a copy from the broker on demand — an explicit opt-in that brings the
+  access token into the browser.
 - **Works from `localhost` with no tunnel.** Because the broker handles all OAuth
   redirects, the storefront origin never needs to be registered as a Shopify
   redirect URI. Merchants add `http://localhost:5173` (or any origin) to the
@@ -207,15 +208,16 @@ Customer Account API GraphQL response → back to browser
 
 ## Security
 
-By default, Shopify Customer Account API tokens live on the **HIKO server** —
-the browser holds only an opaque session token (in-memory, never written to
-`localStorage` or cookies) and reads customer data through the broker's BFF
-(`el.query`). This gives stronger XSS resistance than a browser-side PKCE
-integration.
+The Shopify Customer Account API tokens **always** live on the **HIKO server** —
+the broker holds and refreshes them (encrypted at rest) and keeps them even when
+the browser asks for a copy. By default the browser holds only an opaque session
+token (in-memory, never written to `localStorage` or cookies) and reads customer
+data through the broker's BFF (`el.query`). This gives stronger XSS resistance
+than a browser-side PKCE integration.
 
-`el.getToken()` is an explicit opt-out of that isolation: it returns the live
-Customer Account API access token to the browser so you can call the Customer
-Account API directly. Use it only when you need direct API access — while the
+`el.getToken()` is an explicit opt-out of that isolation: it returns a *copy* of
+the live Customer Account API access token to the browser so you can call the
+Customer Account API directly (the broker's own copy stays server-side). Use it only when you need direct API access — while the
 browser holds that token it carries the same XSS exposure as any browser-side
 token. A strict **Content-Security-Policy** on your storefront is recommended
 either way (it also protects the session token from script injection).
