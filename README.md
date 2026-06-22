@@ -121,6 +121,26 @@ In **HIKO admin → Integrations → Customer Account API**:
    development. (These are HIKO-side CORS/session allowances, not Shopify
    redirect URIs, so `http://localhost` is fine.)
 
+### Two separate OAuth clients
+
+There are **two distinct OAuth clients** in this flow — don't confuse them:
+
+1. **The Shopify Customer Account API client** (the Client ID / Secret above).
+   This authenticates the **HIKO broker to Shopify** so it can run the customer
+   login and read customer data. It is headless-specific and is what the steps
+   above configure.
+2. **The social-provider OAuth clients** — your own **Google / Facebook / LINE /
+   TikTok** app credentials (each provider's own client id + secret). These are
+   configured in the **provider settings** of the HIKO admin, exactly as for
+   your Shopify *theme* storefront, and are **shared between the theme and
+   headless flows** — there is nothing headless-specific to set up.
+
+The headless login federates through the same HIKO sign-in step the theme widget
+uses, so each social provider uses whatever you configured there: **your own
+custom client id/secret if you entered one, otherwise HIKO's shared app.** If
+social login already works on your theme storefront, it works in headless with
+no extra provider configuration.
+
 ---
 
 ## Install
