@@ -7,7 +7,7 @@ Headless social login for Shopify **new customer accounts** — drops the same
 It is the headless companion to **HIKO Social Login Plus** — install that app on
 your store and this module renders its configured providers and runs the login.
 
-- App Store: **[HIKO Social Login Plus](https://apps.shopify.com/simple-social-login)** (HIKO Software)
+- App Store: **[HIKO Social Login Plus](https://apps.shopify.com/hiko-ultimate-social-login)** (HIKO Software)
 - Provider setup lives in the HIKO admin; this module only consumes it.
 
 ---
@@ -40,7 +40,7 @@ your store and this module renders its configured providers and runs the login.
 
 ## Prerequisites
 
-1. **The store has [HIKO Social Login Plus](https://apps.shopify.com/simple-social-login) installed** and social providers
+1. **The store has [HIKO Social Login Plus](https://apps.shopify.com/hiko-ultimate-social-login) installed** and social providers
    configured in its admin. Without it, `/headless/config` returns no providers
    and the widget renders nothing.
 2. **New customer accounts** are enabled on the store (Settings → Customer
