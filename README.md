@@ -1,8 +1,8 @@
-# @hiko/signin-headless
+# signin-headless
 
 Add Google, Facebook, and other social sign-in to a **headless** Shopify
 storefront (React, Vue, Hydrogen, or plain HTML) with a single web component and
-**no backend of your own**. `@hiko/signin-headless` drops the same
+**no backend of your own**. `signin-headless` drops the same
 `<hiko-signin>` widget your Shopify theme already uses into any headless
 storefront: it renders the providers you configured in your HIKO admin, runs the
 entire login through the hosted HIKO broker, and lets you read the signed-in
@@ -21,7 +21,7 @@ write no OAuth code, run no server, and store no secrets.
 ## Quick start
 
 ```bash
-npm install @hiko/signin-headless
+npm install signin-headless
 ```
 
 ```html
@@ -30,7 +30,7 @@ npm install @hiko/signin-headless
 
 <script type="module">
   // 2. One import registers <hiko-signin>. No other setup.
-  import "@hiko/signin-headless";
+  import "signin-headless";
 
   const el = document.querySelector("hiko-signin");
 
@@ -166,7 +166,7 @@ whatever value the HIKO admin shows for each provider.
 ## Install
 
 ```bash
-npm install @hiko/signin-headless
+npm install signin-headless
 ```
 
 ---
@@ -179,9 +179,9 @@ npm install @hiko/signin-headless
 <div id="mount"></div>
 
 <script type="module">
-  import "@hiko/signin-headless"; // registers <hiko-signin> and auto-calls registerHikoSignin()
+  import "signin-headless"; // registers <hiko-signin> and auto-calls registerHikoSignin()
   // — or —
-  import "@hiko/signin-headless/element";
+  import "signin-headless/element";
 
   const el = document.createElement("hiko-signin");
   el.setAttribute("shop", "your-shop.myshopify.com");
@@ -230,7 +230,7 @@ the result back to the opener via `postMessage`.
 <hiko-signin shop="your-shop.myshopify.com" mode="popup"></hiko-signin>
 
 <script type="module">
-  import "@hiko/signin-headless";
+  import "signin-headless";
 
   const el = document.querySelector("hiko-signin");
 
@@ -263,7 +263,7 @@ Key behaviour:
 > surface. Use `el.query()`, `el.getToken()`, etc. directly on the element.
 
 Exports: `registerHikoSignin` (named), and the side-effect
-`@hiko/signin-headless/element` entry (registers `<hiko-signin>`).
+`signin-headless/element` entry (registers `<hiko-signin>`).
 
 ---
 

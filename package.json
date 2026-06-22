@@ -1,7 +1,7 @@
 {
-  "name": "@hiko/signin-headless",
+  "name": "signin-headless",
   "version": "0.1.0",
-  "description": "Headless Shopify Customer Account (OIDC) social login — public client + PKCE, browser-only.",
+  "description": "Headless social login for Shopify new customer accounts — drop-in <hiko-signin> web component; brokered OAuth with tokens kept server-side. Companion to HIKO Social Login Plus.",
   "type": "module",
   "license": "MIT",
   "sideEffects": [
