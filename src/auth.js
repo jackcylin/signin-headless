@@ -16,6 +16,10 @@ export function createHeadlessAuth({
   const listeners = new Set();
   const emit = () => listeners.forEach((cb) => cb(api));
 
+  const phaseListeners = new Set();
+  const emitPhase = (phase, detail) =>
+    phaseListeners.forEach((cb) => cb(phase, detail));
+
   const api = {
     // ── Seams (overridable for testing) ────────────────────────────────────
     _navigate: (url) => location.assign(url),
@@ -48,6 +52,7 @@ export function createHeadlessAuth({
 
     // ── Login ──────────────────────────────────────────────────────────────
     login(provider) {
+      emitPhase("start", { provider: provider ?? null });
       if (mode === "popup") {
         api._loginPopup(provider);
       } else {
@@ -82,6 +87,9 @@ export function createHeadlessAuth({
         return;
       }
 
+      // Track whether a session was successfully accepted
+      let sessionAccepted = false;
+
       // Listen for the session relay from the popup
       function onMessage(e) {
         // Security: only accept from same origin AND from the popup we opened
@@ -90,6 +98,7 @@ export function createHeadlessAuth({
         if (!e.data || e.data.type !== "hiko:session") return;
 
         // Accept the session
+        sessionAccepted = true;
         token = e.data.session;
         if (e.data.customer) lastCustomer = e.data.customer;
         cleanup();
@@ -98,7 +107,12 @@ export function createHeadlessAuth({
 
       // Poll for popup closure (user closed without completing)
       const pollId = setInterval(() => {
-        if (popup.closed) cleanup();
+        if (popup.closed) {
+          if (!sessionAccepted) {
+            emitPhase("cancel", { provider });
+          }
+          cleanup();
+        }
       }, 400);
 
       function cleanup() {
@@ -233,6 +247,11 @@ export function createHeadlessAuth({
     onChange(cb) {
       listeners.add(cb);
       return () => listeners.delete(cb);
+    },
+
+    onLoginPhase(cb) {
+      phaseListeners.add(cb);
+      return () => phaseListeners.delete(cb);
     },
   };
 

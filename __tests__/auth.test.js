@@ -514,6 +514,163 @@ describe("popup login — post-success replay rejection", () => {
   });
 });
 
+// ─── onLoginPhase tests ───────────────────────────────────────────────────────
+
+describe("onLoginPhase()", () => {
+  it("fires ('start', { provider }) when login() is called in redirect mode", () => {
+    const auth = createHeadlessAuth({
+      shop: SHOP,
+      configServer: CS,
+      returnUrl: "https://mystore.com/account",
+      fetchImpl: vi.fn(),
+    });
+    auth._navigate = vi.fn();
+
+    const phases = [];
+    auth.onLoginPhase((phase, detail) => phases.push({ phase, detail }));
+
+    auth.login("google");
+
+    expect(phases).toHaveLength(1);
+    expect(phases[0].phase).toBe("start");
+    expect(phases[0].detail).toEqual({ provider: "google" });
+  });
+
+  it("fires ('start', { provider: null }) when login() called without a provider", () => {
+    const auth = createHeadlessAuth({
+      shop: SHOP,
+      configServer: CS,
+      returnUrl: "https://mystore.com/account",
+      fetchImpl: vi.fn(),
+    });
+    auth._navigate = vi.fn();
+
+    const phases = [];
+    auth.onLoginPhase((phase, detail) => phases.push({ phase, detail }));
+
+    auth.login();
+
+    expect(phases).toHaveLength(1);
+    expect(phases[0].phase).toBe("start");
+    expect(phases[0].detail).toEqual({ provider: null });
+  });
+
+  it("fires ('start', { provider }) when login() is called in popup mode", () => {
+    const auth = createHeadlessAuth({
+      shop: SHOP,
+      configServer: CS,
+      returnUrl: "https://mystore.com/account",
+      fetchImpl: vi.fn(),
+      mode: "popup",
+    });
+    const fakePopup = { closed: false };
+    auth._openPopup = () => fakePopup;
+    auth._navigate = vi.fn();
+
+    const phases = [];
+    auth.onLoginPhase((phase, detail) => phases.push({ phase, detail }));
+
+    auth.login("google");
+
+    expect(phases).toHaveLength(1);
+    expect(phases[0].phase).toBe("start");
+    expect(phases[0].detail).toEqual({ provider: "google" });
+  });
+
+  it("fires ('cancel', ...) when popup is closed without completing login", () => {
+    vi.useFakeTimers();
+    try {
+      const auth = createHeadlessAuth({
+        shop: SHOP,
+        configServer: CS,
+        returnUrl: "https://mystore.com/account",
+        fetchImpl: vi.fn(),
+        mode: "popup",
+      });
+      const fakePopup = { closed: false };
+      auth._openPopup = () => fakePopup;
+      auth._navigate = vi.fn();
+
+      const phases = [];
+      auth.onLoginPhase((phase, detail) => phases.push({ phase, detail }));
+
+      auth.login("google");
+
+      // start should have fired
+      expect(phases).toHaveLength(1);
+      expect(phases[0].phase).toBe("start");
+
+      // Simulate popup closed by user without completing
+      fakePopup.closed = true;
+      vi.advanceTimersByTime(500);
+
+      // cancel should also have fired
+      expect(phases).toHaveLength(2);
+      expect(phases[1].phase).toBe("cancel");
+      expect(phases[1].detail).toMatchObject({ provider: "google" });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does NOT fire ('cancel') after a successful popup login", () => {
+    vi.useFakeTimers();
+    try {
+      const auth = createHeadlessAuth({
+        shop: SHOP,
+        configServer: CS,
+        returnUrl: "https://mystore.com/account",
+        fetchImpl: vi.fn(),
+        mode: "popup",
+      });
+      const fakePopup = { closed: false };
+      auth._openPopup = () => fakePopup;
+      auth._navigate = vi.fn();
+
+      const phases = [];
+      auth.onLoginPhase((phase, detail) => phases.push({ phase, detail }));
+
+      auth.login("google");
+
+      // Send a successful session message first
+      const okEvent = new MessageEvent("message", {
+        data: { type: "hiko:session", session: "tok-ok", customer: { firstName: "Jo" } },
+        origin: location.origin,
+        source: fakePopup,
+      });
+      window.dispatchEvent(okEvent);
+
+      // Now simulate popup closing (already cleaned up by success handler)
+      fakePopup.closed = true;
+      vi.advanceTimersByTime(500);
+
+      // Only 'start' should have fired; no 'cancel'
+      const cancelPhases = phases.filter((p) => p.phase === "cancel");
+      expect(cancelPhases).toHaveLength(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("onLoginPhase returns unsubscribe function", () => {
+    const auth = createHeadlessAuth({
+      shop: SHOP,
+      configServer: CS,
+      returnUrl: "https://mystore.com/account",
+      fetchImpl: vi.fn(),
+    });
+    auth._navigate = vi.fn();
+
+    const phases = [];
+    const unsub = auth.onLoginPhase((phase, detail) => phases.push({ phase, detail }));
+    unsub();
+
+    auth.login("google");
+
+    expect(phases).toHaveLength(0);
+  });
+});
+
 describe("popup login — poll-cleanup on user close", () => {
   it("cleans up listeners and intervals when popup is closed by user without completing", async () => {
     vi.useFakeTimers();

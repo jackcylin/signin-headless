@@ -1,6 +1,6 @@
 import {
   registerHikoSignin
-} from "./chunk-OUQALJMK.js";
+} from "./chunk-PJLPELRV.js";
 export {
   registerHikoSignin
 };

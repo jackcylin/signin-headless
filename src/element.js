@@ -18,6 +18,12 @@ export function registerHikoSignin() {
       return createHeadlessTransport(auth);
     }
 
+    // Wire login phase signals to DOM events so consumers can show/hide spinners.
+    auth.onLoginPhase?.((phase, detail) => {
+      const type = phase === "start" ? "hiko:loginstart" : "hiko:logincancel";
+      el.dispatchEvent(new CustomEvent(type, { bubbles: true, composed: true, detail: detail ?? null }));
+    });
+
     // Wire auth state changes to DOM events BEFORE handling any pending callback,
     // so the hiko:login event fires if handleCallback() sets a token below.
     auth.onChange((a) => {

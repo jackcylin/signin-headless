@@ -671,6 +671,10 @@ function createHeadlessAuth({
   const listeners = new Set();
   const emit = () => listeners.forEach((cb) => cb(api));
 
+  const phaseListeners = new Set();
+  const emitPhase = (phase, detail) =>
+    phaseListeners.forEach((cb) => cb(phase, detail));
+
   const api = {
     // ── Seams (overridable for testing) ────────────────────────────────────
     _navigate: (url) => location.assign(url),
@@ -703,6 +707,7 @@ function createHeadlessAuth({
 
     // ── Login ──────────────────────────────────────────────────────────────
     login(provider) {
+      emitPhase("start", { provider: provider ?? null });
       if (mode === "popup") {
         api._loginPopup(provider);
       } else {
@@ -737,6 +742,9 @@ function createHeadlessAuth({
         return;
       }
 
+      // Track whether a session was successfully accepted
+      let sessionAccepted = false;
+
       // Listen for the session relay from the popup
       function onMessage(e) {
         // Security: only accept from same origin AND from the popup we opened
@@ -745,6 +753,7 @@ function createHeadlessAuth({
         if (!e.data || e.data.type !== "hiko:session") return;
 
         // Accept the session
+        sessionAccepted = true;
         token = e.data.session;
         if (e.data.customer) lastCustomer = e.data.customer;
         cleanup();
@@ -753,7 +762,12 @@ function createHeadlessAuth({
 
       // Poll for popup closure (user closed without completing)
       const pollId = setInterval(() => {
-        if (popup.closed) cleanup();
+        if (popup.closed) {
+          if (!sessionAccepted) {
+            emitPhase("cancel", { provider });
+          }
+          cleanup();
+        }
       }, 400);
 
       function cleanup() {
@@ -889,6 +903,11 @@ function createHeadlessAuth({
       listeners.add(cb);
       return () => listeners.delete(cb);
     },
+
+    onLoginPhase(cb) {
+      phaseListeners.add(cb);
+      return () => phaseListeners.delete(cb);
+    },
   };
 
   return api;
@@ -916,9 +935,15 @@ function registerHikoSignin() {
     // Popup-relay case: this element instance is running INSIDE the OAuth popup.
     // Relay the session back to the opener then close — do not run the normal flow.
     if (auth.isPopupCallback()) {
-      auth.completePopupCallback();
+      auth.completePopupCallback().catch(() => {});
       return createHeadlessTransport(auth);
     }
+
+    // Wire login phase signals to DOM events so consumers can show/hide spinners.
+    auth.onLoginPhase?.((phase, detail) => {
+      const type = phase === "start" ? "hiko:loginstart" : "hiko:logincancel";
+      el.dispatchEvent(new CustomEvent(type, { bubbles: true, composed: true, detail: detail ?? null }));
+    });
 
     // Wire auth state changes to DOM events BEFORE handling any pending callback,
     // so the hiko:login event fires if handleCallback() sets a token below.

@@ -157,6 +157,31 @@ it("hiko:login event carries detail.customer when popup provides customer", asyn
   window.location.hash = originalHash;
 });
 
+// ─── hiko:loginstart / hiko:logincancel element tests ────────────────────────
+
+it("el.login('google') dispatches hiko:loginstart with detail.provider === 'google'", async () => {
+  globalThis.fetch = vi.fn(async () => new Response("{}", { status: 200 }));
+  registerHikoSignin();
+  const el = document.createElement("hiko-signin");
+  el.setAttribute("shop", "s.myshopify.com");
+  el.setAttribute("mode", "popup");
+  document.body.appendChild(el);
+  await el.updateComplete;
+
+  // Stub out openPopup so no real popup opens
+  const fakePopup = { closed: false };
+  // The element stores auth internally; we intercept at the DOM event level
+  const startEvents = [];
+  el.addEventListener("hiko:loginstart", (e) => startEvents.push(e));
+
+  el.login("google");
+
+  expect(startEvents).toHaveLength(1);
+  expect(startEvents[0].detail).toMatchObject({ provider: "google" });
+  expect(startEvents[0].bubbles).toBe(true);
+  expect(startEvents[0].composed).toBe(true);
+});
+
 it("when isPopupCallback() is true on connect, completePopupCallback runs and element does not throw", async () => {
   // Simulate being inside the OAuth popup: hash has hiko_session,
   // window.name = "hiko-signin", window.opener exists.

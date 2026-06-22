@@ -1,6 +1,20 @@
 <!doctype html><meta charset="utf-8" />
+<style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner {
+    display: inline-block;
+    width: 1em; height: 1em;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+  }
+  #spin { margin: 0.5em 0; color: #555; }
+</style>
 <h1>HIKO headless sign-in (dev)</h1>
 <div id="mount"></div>
+<div id="spin" hidden><span class="spinner"></span> Signing in…</div>
 <button id="logout" hidden>Sign out</button>
 <pre id="out"></pre>
 <script type="module">
@@ -16,6 +30,7 @@
 
   const out = document.getElementById("out");
   const logoutBtn = document.getElementById("logout");
+  const spin = document.getElementById("spin");
 
   // Hide the sign-in widget once signed in; show it again after logout.
   function reflectAuth(signedIn) {
@@ -36,12 +51,17 @@
     } catch (e) { out.textContent = "Error: " + e.message; }
   }
 
+  el.addEventListener("hiko:loginstart", () => { spin.hidden = false; });
+  el.addEventListener("hiko:logincancel", () => { spin.hidden = true; });
+
   el.addEventListener("hiko:login", async (e) => {
+    spin.hidden = true;
     reflectAuth(true);                       // access token obtained → hide the widget
     await showCustomer(e.detail?.customer ?? null);
   });
 
   el.addEventListener("hiko:logout", () => {
+    spin.hidden = true;
     // Housekeeping: clear the customer panel and bring the widget back.
     out.textContent = "(signed out — click a provider above)";
     reflectAuth(false);

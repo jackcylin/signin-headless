@@ -176,6 +176,8 @@ Events dispatched on the element (`bubbles: true, composed: true`):
 | --- | --- | --- |
 | `hiko:login` | Callback processed / token becomes present | `{ customer }` (non-null in popup mode; `null` in redirect mode) |
 | `hiko:logout` | Token cleared (logout or 401) | — |
+| `hiko:loginstart` | A provider or email login begins (fired immediately when `el.login()` is called) | `{ provider }` — the provider string (e.g. `"google"`) or `null` for email/OTP |
+| `hiko:logincancel` | A popup login was closed/abandoned without completing (popup mode only) | `{ provider }` — same provider that was passed to `el.login()` |
 
 ### Popup mode
 
