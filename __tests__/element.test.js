@@ -241,9 +241,13 @@ it("when isPopupCallback() is true on connect, completePopupCallback runs and el
   // Assert that the popup closed itself
   expect(windowCloseCalls).toHaveLength(1);
 
+  // Assert the popup spinner overlay was injected (hides the flashed page).
+  expect(document.getElementById("hiko-popup-overlay")).not.toBeNull();
+
   // Restore
   window.name = originalName;
   window.location.hash = originalHash;
   window.close = originalClose;
   Object.defineProperty(window, "opener", { value: null, configurable: true, writable: true });
+  document.getElementById("hiko-popup-overlay")?.remove();
 });
