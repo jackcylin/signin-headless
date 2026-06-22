@@ -14,7 +14,7 @@ export function registerHikoSignin() {
     // Popup-relay case: this element instance is running INSIDE the OAuth popup.
     // Relay the session back to the opener then close — do not run the normal flow.
     if (auth.isPopupCallback()) {
-      auth.completePopupCallback();
+      auth.completePopupCallback().catch(() => {});
       return createHeadlessTransport(auth);
     }
 

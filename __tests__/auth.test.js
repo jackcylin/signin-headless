@@ -471,3 +471,85 @@ describe("getLastCustomer()", () => {
     expect(auth.getLastCustomer()).toBeNull();
   });
 });
+
+// ─── Popup login regression tests (security & robustness) ─────────────────────
+
+describe("popup login — post-success replay rejection", () => {
+  it("rejects a second hiko:session message from the same source after first accept (listener removed)", () => {
+    const auth = createHeadlessAuth({
+      shop: SHOP,
+      configServer: CS,
+      returnUrl: "https://mystore.com/account",
+      fetchImpl: vi.fn(),
+      mode: "popup",
+    });
+    const fakePopup = { closed: false };
+    auth._openPopup = () => fakePopup;
+    auth._navigate = vi.fn();
+
+    auth.login("google");
+
+    // First message: accepted
+    const event1 = new MessageEvent("message", {
+      data: { type: "hiko:session", session: "tok1", customer: { firstName: "A" } },
+      origin: location.origin,
+      source: fakePopup,
+    });
+    window.dispatchEvent(event1);
+
+    expect(auth.isLoggedIn()).toBe(true);
+    expect(auth.getLastCustomer()).toMatchObject({ firstName: "A" });
+
+    // Second message: same source, different session (replay attempt)
+    const event2 = new MessageEvent("message", {
+      data: { type: "hiko:session", session: "tok2", customer: { firstName: "B" } },
+      origin: location.origin,
+      source: fakePopup,
+    });
+    window.dispatchEvent(event2);
+
+    // State must NOT change — listener was removed on first accept
+    expect(auth.isLoggedIn()).toBe(true);
+    expect(auth.getLastCustomer()).toMatchObject({ firstName: "A" });
+  });
+});
+
+describe("popup login — poll-cleanup on user close", () => {
+  it("cleans up listeners and intervals when popup is closed by user without completing", async () => {
+    vi.useFakeTimers();
+    try {
+      const auth = createHeadlessAuth({
+        shop: SHOP,
+        configServer: CS,
+        returnUrl: "https://mystore.com/account",
+        fetchImpl: vi.fn(),
+        mode: "popup",
+      });
+      const fakePopup = { closed: false };
+      auth._openPopup = () => fakePopup;
+      auth._navigate = vi.fn();
+
+      auth.login("google");
+
+      // Simulate user closing the popup (without sending a message)
+      fakePopup.closed = true;
+
+      // Advance timers to trigger the poll check
+      vi.advanceTimersByTime(500);
+
+      // After cleanup, a subsequent message should be ignored (listener removed)
+      const event = new MessageEvent("message", {
+        data: { type: "hiko:session", session: "tok-after-close", customer: { firstName: "Late" } },
+        origin: location.origin,
+        source: fakePopup,
+      });
+      window.dispatchEvent(event);
+
+      // State must not change because listener was removed
+      expect(auth.isLoggedIn()).toBe(false);
+      expect(auth.getLastCustomer()).toBeNull();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

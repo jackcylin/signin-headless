@@ -173,6 +173,11 @@ it("when isPopupCallback() is true on connect, completePopupCallback runs and el
     writable: true,
   });
 
+  // Track window.close() calls
+  const windowCloseCalls = [];
+  const originalClose = window.close;
+  window.close = () => windowCloseCalls.push(true);
+
   // Mock fetch for token + customer
   globalThis.fetch = vi.fn(async (url) => {
     if (String(url).includes("/headless/token"))
@@ -193,13 +198,27 @@ it("when isPopupCallback() is true on connect, completePopupCallback runs and el
   try {
     document.body.appendChild(el);
     await el.updateComplete;
+    // Give completePopupCallback() time to run (it's async, not awaited in element.js)
+    await new Promise(resolve => setTimeout(resolve, 50));
   } catch (e) {
     err = e;
   }
   expect(err).toBeNull();
 
+  // Assert that completePopupCallback posted the session to opener with full payload
+  expect(openerMessages).toHaveLength(1);
+  const msg = openerMessages[0];
+  expect(msg.type).toBe("hiko:session");
+  expect(msg.session).toBe("relay-tok");
+  expect(msg.accessToken).toBe("at-relay");
+  expect(msg.customer).toMatchObject({ firstName: "Relay" });
+
+  // Assert that the popup closed itself
+  expect(windowCloseCalls).toHaveLength(1);
+
   // Restore
   window.name = originalName;
   window.location.hash = originalHash;
+  window.close = originalClose;
   Object.defineProperty(window, "opener", { value: null, configurable: true, writable: true });
 });
